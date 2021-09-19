@@ -9,4 +9,28 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Intro
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+## Import data
+
+Data downloaded manually from iNat. 
+
+```{r}
+data <- read.csv("./data/observations-9.19.21.csv")
+```
+
+## Save subset for extracting environmental data
+
+```{r}
+write.csv(data[c(1,22,23)],file="./data/gps-9.19.21.csv")
+```
+
+
+
+```{r}
+
+```
+
