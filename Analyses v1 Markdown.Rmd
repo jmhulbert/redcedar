@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r include=FALSE}
+#install.packages("tidyverse")
 library(tidyverse)
 ```
 
@@ -22,15 +23,24 @@ Data downloaded manually from iNat.
 data <- read.csv("./data/observations-9.19.21.csv")
 ```
 
-## Save subset for extracting environmental data
+## Prepare dataset for extracting environmental data with climateNA
 
 ```{r}
-write.csv(data[c(1,22,23)],file="./data/gps-9.19.21.csv")
+gps <- data[c(1,22,23)]
+gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".")
+
+?write.csv
+write.csv(gps,file="./data/gps.csv")
 ```
 
 
+## Import dataset with 30yr normals data
+
 
 ```{r}
 
 ```
+
+## Merge data
+
 
