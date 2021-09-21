@@ -175,3 +175,62 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.cano
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="30 Year Normals",x="Symptoms")
 ```
 
+### AHM
+
+#### Symptoms
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
+```
+
+
+#### Site Severity
+
+```{r }
+ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees") +labs(title="30 Year Normals",x="Symptoms")
+```
+
+#### Size Class
+
+```{r}
+ggplot(filtered.symptoms,aes(field.optional...tree.size,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="30 Year Normals",x="Symptoms")
+```
+
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+facet_wrap(~field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="30 Year Normals",x="Symptoms")
+```
+
+### SHM
+
+#### Symptoms
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
+```
+
+
+#### Site Severity
+
+```{r }
+ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees") +labs(title="30 Year Normals",x="Symptoms")
+```
+
+#### Size Class
+
+```{r}
+ggplot(filtered.symptoms,aes(field.optional...tree.size,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="30 Year Normals",x="Symptoms")
+```
+
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+facet_wrap(~field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="30 Year Normals",x="Symptoms")
+```
