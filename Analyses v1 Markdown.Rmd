@@ -600,6 +600,10 @@ ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms
 #### MAP
 
 ```{r}
+names(binary)
+```
+
+```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
