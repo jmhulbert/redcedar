@@ -50,7 +50,6 @@ combined <- left_join(data,lastdecade,by="id")  %>% filter(MAP >0,na.rm=TRUE)
 
 ## TOPO Data
 
-
 ### Import TOPO Data
 
 ```{r}
