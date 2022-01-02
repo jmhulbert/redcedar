@@ -1,0 +1,62 @@
+---
+title: "Topo Data Extraction"
+author: "Joey Hulbert"
+date: "1/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Purpose
+
+The purpose of this Markdown Document is to record the methods for extracting topographic data for the redcedar GPS points.
+
+The method described below was completed in QGIS 3.14.1-Pi.
+
+## Import and Add Base Data Layers
+  
+  * Import Data from ServerFiles 
+	  + Active analysis data is ServerFiles/redcedar/data
+	  + Layer > Add Layer > Add Deliminated Layer > x = longitude,  y=latitude
+	  + Add XYZ Tile for reference
+
+## Download Data 
+  
+  * Download SRTM data from [Nasa](https://www2.jpl.nasa.gov/srtm/).
+	  + Use STRM Data Downloader
+		  + Change map extent to area you want to download
+		  + open STRM data downloader (dark globe on toolbar)
+		  + download DEMs (they will download as .hgt files)
+		  
+## Merge Data 
+
+ * Merge HGTM files and save as tif.
+	+ Raster > Miscillaneous > Merge
+	+ Select hgt files
+	+ leave as float 32 (although it may work better with GRASS as INT16)
+		specify save location
+	+ Youtube video available [here](https://www.youtube.com/watch?v=m_bi37bGPF4).
+	
+## Reproject DEM 	
+ 
+ * Reproject DEM
+	+ Raster > Projections > Warp > Target CRS: EPSG:32610 - WGS 84 / UTM Zone 10N (I didn't have a specific reason to pick this CRS, it just worked)
+	+ I had trouble extracting the slope data from the DEM without reprojecting it
+	+ This is apparently because of vertical units needed by slope algorithm expects meters rather than degrees
+	  + see stack exchange article [here](https://gis.stackexchange.com/questions/338098/qgis-slope-analysis-thinks-elevation-unit-is-degrees-making-all-slopes-90-degree).
+
+## Create Rasters
+
+  * Create Aspect and Slope rasters from DEM data
+	  + Raster Terrain Analysis -> Aspect 
+	  + Raster Terrain Analysis -> Slope
+  	+ GRASS r.slope.aspect
+
+## Extract Data 
+
+  * Extract DEM data for points
+	  + Processing toolbox > add raster values to points
+	  + Extracts elevation data in meters
+    + Extract shapefile as csv. 

@@ -1,0 +1,450 @@
+---
+title: "Data Visualization and Exploration v2"
+author: "Joey Hulbert"
+date: "1/1/2022"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+
+```{r include=FALSE}
+#install.packages("tidyverse")
+library(tidyverse)
+```
+
+
+# Purpose
+
+The purpose of this document is to track and provide instructions for reproducing the analyses of the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project data.
+
+# Approach
+
+The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
+
+# Open questions
+
+The below bullets are questions or comments that should be resolved before final analyses
+
+* Considerations
+  + Should we filter data to remove GPS points with poor accuracy?
+  + Data averaged over last decade or last 30 years?
+  + Better approach to calculate topographic data?
+  + Should we restrict data to Washington and Oregon because that is where soils data is available. 
+  + Should we look at data from last decade only or also from last 30 years?
+
+# Notes
+
+  * Important notes to consider when visualizing these data.
+    + **Observations are filtered to only include those with Soils Data**
+    + Data is filtered to show most common symptoms only. 
+
+# Data
+
+The data used in the below visualizations are described in the [Data Wrangle folder](./data-wrangle). 
+
+```{r}
+data <- read.csv("./data/observations-9.19.21.csv")
+```
+
+```{r}
+gps <- data[c(1,22,23)]
+gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
+```
+
+```{r}
+normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
+normals <- rename(normals, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+```{r}
+lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
+lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+```{r}
+topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
+topo <- rename(topo, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+```{r}
+wasoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
+orsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
+wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+pnwsoils <- bind_rows(wasoils,orsoils)
+```
+
+```{r}
+#combinednormals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+```
+
+```{r}
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.tree.canopy.symptoms <- as.factor(combo.decade$field.tree.canopy.symptoms)
+#levels(combo.decade$field.tree.canopy.symptoms)
+```
+
+```{r}
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.optional...tree.size <- as.factor(combo.decade$field.optional...tree.size)
+#levels(combo.decade$field.optional...tree.size)
+```
+
+```{r}
+combo.decade <- combo.decade %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
+```
+
+```{r}
+combo.decade %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+```{r}
+filtered.symptoms <- combo.decade  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
+#levels(filtered.symptoms$field.tree.canopy.symptoms)
+```
+
+```{r}
+filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- combo.decade
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+```
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+# Data Visualization
+### Climate
+#### Decade 2011-2020 {.tabset .tabset-pills}
+##### MAT
+
+###### Symptoms
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Site Severity
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Size Class
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+facet_wrap(~field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### MAP
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### AHM
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### SHM
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Filtered SHM <200
+```{r}
+filtered.symptoms.shm <- filtered.symptoms %>% filter(SHM<200) %>% droplevels()
+```
+
+```{r}
+ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms", y="Summer Heat-Moisture Index")
+```
+
+##### MSP
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### CMD
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+
+##### Eref
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+***
+
+
+### TOPO Data {.tabset .tabset-pills}
+#### Aspect
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Aspect.x,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Aspect (degrees)",x="Symptoms")
+```
+
+#### Slope
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Slope.x,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
+```
+
+#### Elevation
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,PNWSRTMDEM.x,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Elevation (meters)",x="Symptoms")
+```
+
+### Topo & Climate  {.tabset .tabset-pills}
+##### Slope
+###### CMD
+```{r}
+ggplot(filtered.symptoms,aes(Slope.x,CMD,color=field.tree.canopy.symptoms))+geom_point()
+```
+
+```{r}
+ggplot(filtered.symptoms,aes(Slope.x,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
+```
+
+```{r}
+ggplot(filtered.symptoms,aes(Slope.x,CMD,color=field.tree.canopy.symptoms))+geom_smooth()+facet_wrap(~field.tree.canopy.symptoms)
+```
+
+##### Elevation
+```{r}
+ggplot(filtered.symptoms,aes(PNWSRTMDEM.x,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
+```
+
+***
+
+### Soils Data {.tabset .tabset-pills}
+
+#### Bedrock Depth
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+#### drclasscd
+
+
+```{r}
+ggplot(filtered.symptoms,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
+```
+
+#### drclasswettest
+```{r}
+ggplot(filtered.symptoms,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
+```
+
+#### hydgrpdcd
+```{r}
+ggplot(filtered.symptoms,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
+```
+
+#### slopegradwta
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+#### niccdcdpct
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+***
+
+### Binary Data {.tabset .tabset-pills}
+
+#### Climate {.tabset .tabset-pills}
+
+##### MAT
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Site Severity
+
+```{r include=FALSE}
+ggplot(binary,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Size Class
+
+```{r include=FALSE}
+ggplot(binary,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+facet_wrap(~field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### MAP
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### AHM
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### SHM
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Filtered SHM <200
+```{r}
+binary.shm <- binary %>% filter(SHM<200) %>% droplevels()
+```
+
+```{r}
+ggplot(binary.shm,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### MSP
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### CMD
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+##### Eref
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+#### Topo
+
+```{r}
+ggplot(binary,aes(PNWSRTMDEM.x,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
+```
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,Slope.x,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
+```
+
+#### Soils {.tabset .tabset-pills}
+
+##### Bedrock Depth
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+##### drclasscd
+
+
+```{r}
+ggplot(binary,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
+```
+
+##### drclasswettest
+```{r}
+ggplot(binary,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
+```
+
+##### hydgrpdcd
+```{r}
+ggplot(binary,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
+```
+
+##### slopegradwta
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+##### niccdcdpct
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+
+***

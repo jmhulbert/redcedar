@@ -5,12 +5,13 @@ date: "9/19/2021"
 output:
   html_document:
     toc: yes
-    toc_depth: 3
+    toc_depth: 4
     toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
 ```
 
 
@@ -30,7 +31,6 @@ library(tidyverse)
       + compare across size class?
       + compare across site type?
 
-
 ## Data Prep
 
 ### Import data
@@ -41,35 +41,36 @@ Data downloaded manually from iNat.
 data <- read.csv("./data/observations-9.19.21.csv")
 ```
 
-### Prepare dataset for extracting environmental data with climateNA
+### Wrangle Data 
 
+Prepare dataset for extracting environmental (climate, topo, soils) data
 ```{r}
 gps <- data[c(1,22,23)]
 gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".")
 write.csv(gps,file="./data/gps.csv")
 ```
 
-## 30 Normals 
+## Data Visualization
+### Climate
+#### 30 Normals {.tabset .tabset-pills}  
 
-### Import dataset with 30yr normals data
-
+Import dataset with 30yr normals data
 
 ```{r}
 normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
 normals <- rename(normals, id = ID2)
 ```
 
-
-### Merge data
+Merge data
 
 ```{r}
 combined <- left_join(data,normals,by="id")  %>% filter(MAP >0,na.rm=TRUE)
 ```
 
-### Clean data 
+Clean data 
 
-#### Add consistency to factors
-##### Symptoms 
+Add consistency to factors
+Symptoms 
 ```{r}
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
@@ -78,20 +79,20 @@ combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="health
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
 combined <- combined %>% droplevels()
 combined$field.tree.canopy.symptoms <- as.factor(combined$field.tree.canopy.symptoms)
-levels(combined$field.tree.canopy.symptoms)
+#levels(combined$field.tree.canopy.symptoms)
 ```
 
-##### Unhealthy trees
+Unhealthy trees
 ```{r}
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
 combined <- combined %>% droplevels()
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-levels(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
-##### Tree size
+Tree size
 ```{r}
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
@@ -99,37 +100,33 @@ combined$field.optional...tree.size[combined$field.optional...tree.size == "Smal
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
 combined <- combined %>% droplevels()
 combined$field.optional...tree.size <- as.factor(combined$field.optional...tree.size)
-levels(combined$field.optional...tree.size)
+#levels(combined$field.optional...tree.size)
 ```
 
 
-### Filter data
+Filter data
 
-#### Only include symptoms of interest
+Only include symptoms of interest
 ```{r}
 filtered.symptoms <- combined  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
-levels(filtered.symptoms$field.tree.canopy.symptoms)
+#levels(filtered.symptoms$field.tree.canopy.symptoms)
 ```
 
-### Data Exploration
+##### MAT
 
-
-
-#### MAT
-
-##### Symptoms
+###### Symptoms
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-##### Site Severity
+###### Site Severity
 
 ```{r include=FALSE}
 ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="30 Year Normals",x="Symptoms")
 ```
 
-##### Size Class
+###### Size Class
 
 ```{r include=FALSE}
 ggplot(filtered.symptoms,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="30 Year Normals",x="Symptoms")
@@ -146,18 +143,11 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.cano
 ```
 
 
-
-
-
-#### MAP
-
-##### Symptoms
+##### MAP
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
-
-
 
 
 
@@ -169,9 +159,7 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.cano
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-#### AHM
-
-##### Symptoms
+##### AHM
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
@@ -189,15 +177,13 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.cano
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-#### SHM
-
-##### Symptoms
+##### SHM
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-###### Filtered SHM <200
+####### Filtered SHM <200
 ```{r}
 filtered.symptoms.shm <- filtered.symptoms %>% filter(SHM<200) %>% droplevels()
 ```
@@ -214,46 +200,29 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.cano
 ```
 
 
-#### MSP
-
-##### Symptoms
+##### MSP
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms", y="Summer Heat-Moisture Index")
-```
-
-#### CMD
-
-##### Symptoms
+##### CMD
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms", y="Summer Heat-Moisture Index")
-```
-
-
-#### Eref
-
-##### Symptoms
+##### Eref
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="30 Year Normals",x="Symptoms", y="Summer Heat-Moisture Index")
-```
+***
 
-## Decade 2011-2020
+#### Decade 2011-2020 {.tabset .tabset-pills}
 
-### Import dataset with Decade 2011-2020
+Import dataset with Decade 2011-2020
 
 
 ```{r}
@@ -261,16 +230,16 @@ lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
 lastdecade <- rename(lastdecade, id = ID2)
 ```
 
-### Merge data
+Merge data
 
 ```{r}
 combined <- left_join(data,lastdecade,by="id")  %>% filter(MAP >0,na.rm=TRUE)
 ```
 
-### Clean data 
+Clean data 
 
-#### Add consistency to factors
-##### Symptoms 
+Add consistency to factors
+Symptoms 
 ```{r}
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
@@ -279,20 +248,20 @@ combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="health
 combined$field.tree.canopy.symptoms[combined$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
 combined <- combined %>% droplevels()
 combined$field.tree.canopy.symptoms <- as.factor(combined$field.tree.canopy.symptoms)
-levels(combined$field.tree.canopy.symptoms)
+#levels(combined$field.tree.canopy.symptoms)
 ```
 
-##### Unhealthy trees
+Unhealthy trees
 ```{r}
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
 combined <- combined %>% droplevels()
 combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-levels(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combined$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
-##### Tree size
+Tree size
 ```{r}
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
@@ -300,35 +269,33 @@ combined$field.optional...tree.size[combined$field.optional...tree.size == "Smal
 combined$field.optional...tree.size[combined$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
 combined <- combined %>% droplevels()
 combined$field.optional...tree.size <- as.factor(combined$field.optional...tree.size)
-levels(combined$field.optional...tree.size)
+#levels(combined$field.optional...tree.size)
 ```
 
 
-### Filter data
+Filter data
 
-#### Only include symptoms of interest
+Only include symptoms of interest
 ```{r}
 filtered.symptoms <- combined  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
 levels(filtered.symptoms$field.tree.canopy.symptoms)
 ```
 
-### Data Exploration
+##### MAT
 
-#### MAT
-
-##### Symptoms
+###### Symptoms
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### Site Severity
+###### Site Severity
 
 ```{r include=FALSE}
 ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### Size Class
+###### Size Class
 
 ```{r include=FALSE}
 ggplot(filtered.symptoms,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
@@ -342,25 +309,19 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.cano
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### MAP
-
-##### Symptoms
+##### MAP
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### AHM
-
-##### Symptoms
+##### AHM
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### SHM
-
-##### Symptoms
+##### SHM
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
@@ -375,68 +336,30 @@ filtered.symptoms.shm <- filtered.symptoms %>% filter(SHM<200) %>% droplevels()
 ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms", y="Summer Heat-Moisture Index")
 ```
 
-#### MSP
-
-##### Symptoms
+##### MSP
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms", y="Summer Heat-Moisture Index")
-```
-
-#### CMD
-
-##### Symptoms
+##### CMD
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms", y="Summer Heat-Moisture Index")
-```
 
-#### Eref
-
-##### Symptoms
+##### Eref
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-```{r}
-ggplot(filtered.symptoms.shm,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms", y="Summer Heat-Moisture Index")
-```
+***
 
-### Large Trees on Severe sites
+### TOPO Data {.tabset .tabset-pills}
 
-```{r}
-largesevere <- filtered.symptoms %>% filter(field.optional...tree.size=="Large (too big to wrap arms around trunk)" & field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="More than 10" | field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="7-10") %>% droplevels()
-```
-
-#### MSP
-
-##### Symptoms
-
-```{r}
-ggplot(largesevere,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-#### CMD
-
-##### Symptoms
-
-```{r}
-ggplot(largesevere,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-## TOPO Data
-
-
-### Import TOPO Data
+Import TOPO Data
 
 ```{r}
 topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
@@ -444,16 +367,16 @@ topo <- rename(topo, id = ID2)
 ```
 
 
-### Merge data
+Merge data
 
 ```{r}
 combined2 <- left_join(combined,topo,by="id")
 ```
 
-### Clean data 
+Clean data 
 
-#### Add consistency to factors
-##### Symptoms 
+Add consistency to factors
+Symptoms 
 ```{r}
 combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
 combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
@@ -462,20 +385,20 @@ combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="heal
 combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
 combined2 <- combined2 %>% droplevels()
 combined2$field.tree.canopy.symptoms <- as.factor(combined2$field.tree.canopy.symptoms)
-levels(combined2$field.tree.canopy.symptoms)
+#levels(combined2$field.tree.canopy.symptoms)
 ```
 
-##### Unhealthy trees
+Unhealthy trees
 ```{r}
 combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
 combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
 combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
 combined2 <- combined2 %>% droplevels()
 combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-levels(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
-##### Tree size
+Tree size
 ```{r}
 combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
 combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
@@ -483,47 +406,41 @@ combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Sm
 combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
 combined2 <- combined2 %>% droplevels()
 combined2$field.optional...tree.size <- as.factor(combined2$field.optional...tree.size)
-levels(combined2$field.optional...tree.size)
+#levels(combined2$field.optional...tree.size)
 ```
 
 
-### Filter data
+Filter data
 
-#### Only include symptoms of interest
+Only include symptoms of interest
 ```{r}
 filtered.symptoms <- combined2  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
 levels(filtered.symptoms$field.tree.canopy.symptoms)
 ```
 
-### Data Exploration
+
 
 #### Aspect
-##### Symptoms
 
 ```{r}
-names(combined)
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Aspect,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Aspect (degrees)",x="Symptoms")
 ```
 
 #### Slope
-##### Symptoms
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Slope,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
 ```
 
 #### Elevation
-##### Symptoms
 
 ```{r}
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,PNWSRTMDEM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Elevation (meters)",x="Symptoms")
 ```
 
-
-
-### Topo & Climate
-#### Slope
-##### CMD
+### Topo & Climate  {.tabset .tabset-pills}
+##### Slope
+###### CMD
 ```{r}
 ggplot(filtered.symptoms,aes(Slope,CMD,color=field.tree.canopy.symptoms))+geom_point()
 ```
@@ -536,14 +453,131 @@ ggplot(filtered.symptoms,aes(Slope,CMD,color=field.tree.canopy.symptoms))+geom_s
 ggplot(filtered.symptoms,aes(Slope,CMD,color=field.tree.canopy.symptoms))+geom_smooth()+facet_wrap(~field.tree.canopy.symptoms)
 ```
 
-#### Elevation
+##### Elevation
 ```{r}
-names(topo)
 ggplot(filtered.symptoms,aes(PNWSRTMDEM,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
 ```
 
+***
 
-### Binary Data
+### Soils Data {.tabset .tabset-pills}
+ 
+Import Soils Data
+
+```{r}
+WAsoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
+ORsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
+WAsoils <- rename(WAsoils, id = ID2)
+ORsoils <- rename(ORsoils, id = ID2)
+PNWsoils <- bind_rows(WAsoils,ORsoils)
+```
+
+Merge data
+
+```{r}
+combined2 <- left_join(combined,PNWsoils,by="id")
+```
+
+Add consistency to factors
+
+Symptoms 
+```{r}
+combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combined2 <- combined2 %>% droplevels()
+combined2$field.tree.canopy.symptoms <- as.factor(combined2$field.tree.canopy.symptoms)
+#levels(combined2$field.tree.canopy.symptoms)
+```
+
+Unhealthy trees
+```{r}
+combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combined2 <- combined2 %>% droplevels()
+combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+Tree size
+```{r}
+combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combined2 <- combined2 %>% droplevels()
+combined2$field.optional...tree.size <- as.factor(combined2$field.optional...tree.size)
+#levels(combined2$field.optional...tree.size)
+```
+
+
+Filter data
+
+Only include symptoms of interest
+```{r}
+filtered.symptoms <- combined2  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
+levels(filtered.symptoms$field.tree.canopy.symptoms)
+```
+
+
+**Observations are filtered to only include those with Soils Data**
+
+Only include data with soils data (Oregon and Washington)
+
+```{r}
+soil.filtered.symptoms <- filtered.symptoms  %>% filter(RASTERVALU>=0)
+```
+
+#### Bedrock Depth
+
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+#### drclasscd
+
+
+```{r}
+ggplot(soil.filtered.symptoms,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
+```
+
+#### drclasswettest
+```{r}
+ggplot(soil.filtered.symptoms,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
+```
+
+#### hydgrpdcd
+```{r}
+ggplot(soil.filtered.symptoms,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
+```
+
+#### slopegradwta
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+#### niccdcdpct
+```{r}
+ggplot(soil.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+***
+
+### Binary Data {.tabset .tabset-pills}
 
 ```{r}
 
@@ -554,36 +588,21 @@ binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symp
 levels(binary$field.tree.canopy.symptoms)
 ```
 
-#### Topo
+#### Climate {.tabset .tabset-pills}
 
-
-```{r}
-ggplot(binary,aes(PNWSRTMDEM,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
-```
-
-```{r}
-ggplot(binary,aes(field.tree.canopy.symptoms,Slope,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
-```
-
-
-#### Climate
-### Data Exploration
-
-#### MAT
-
-##### Symptoms
+##### MAT
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### Site Severity
+###### Site Severity
 
 ```{r include=FALSE}
 ggplot(binary,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### Size Class
+###### Size Class
 
 ```{r include=FALSE}
 ggplot(binary,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
@@ -597,19 +616,19 @@ ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms
 ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### MAP
+##### MAP
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### AHM
+##### AHM
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### SHM
+##### SHM
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
@@ -624,170 +643,88 @@ binary.shm <- binary %>% filter(SHM<200) %>% droplevels()
 ggplot(binary.shm,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### MSP
+##### MSP
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-###### Filtered SHM <200
-```{r}
-ggplot(binary.shm,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-#### CMD
+##### CMD
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-###### Filtered SHM <200
-```{r}
-ggplot(binary.shm,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-#### Eref
-
+##### Eref
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
-###### Filtered SHM <200
+
+#### Topo
 
 ```{r}
-ggplot(binary.shm,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-### Large Trees on Severe sites
-
-```{r}
-largesevere <- binary %>% filter(field.optional...tree.size=="Large (too big to wrap arms around trunk)" & field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="More than 10" | field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="7-10") %>% droplevels()
-```
-
-#### MSP
-
-
-```{r}
-ggplot(largesevere,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-#### CMD
-
-```{r}
-ggplot(largesevere,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
-```
-
-### Import Soils Data
-
-```{r}
-WAsoils <- read.csv("./data/WA GPS with Soils.csv")
-names(WAsoils)
-WAsoils <- rename(WAsoils, id = ID2)
-```
-
-
-### Merge data
-
-```{r}
-combined2 <- left_join(combined,WAsoils,by="id")
-```
-
-#### Add consistency to factors
-##### Symptoms 
-```{r}
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-combined2 <- combined2 %>% droplevels()
-combined2$field.tree.canopy.symptoms <- as.factor(combined2$field.tree.canopy.symptoms)
-levels(combined2$field.tree.canopy.symptoms)
-```
-
-##### Unhealthy trees
-```{r}
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-combined2 <- combined2 %>% droplevels()
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-levels(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-```
-
-##### Tree size
-```{r}
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-combined2 <- combined2 %>% droplevels()
-combined2$field.optional...tree.size <- as.factor(combined2$field.optional...tree.size)
-levels(combined2$field.optional...tree.size)
-```
-
-
-### Filter data
-
-#### Only include symptoms of interest
-```{r}
-filtered.symptoms <- combined2  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
-levels(filtered.symptoms$field.tree.canopy.symptoms)
-```
-
-#### Only include data with soils data
-
-Only Washington has data currently
-
-```{r}
-wa.filtered.symptoms <- filtered.symptoms  %>% filter(RASTERVALU>=0)
-```
-
-
-
-### Data Exploration
-
-##### Symptoms
-
-
-###### Bedrock Depth
-
-```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
-```
-
-###### drclasscd
-
-
-```{r}
-ggplot(wa.filtered.symptoms,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
-```
-```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
-```
-###### drclasswettest
-```{r}
-ggplot(wa.filtered.symptoms,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+ggplot(binary,aes(PNWSRTMDEM,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
 ```
 
 ```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
+ggplot(binary,aes(field.tree.canopy.symptoms,Slope,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
 ```
-###### hydgrpdcd
+
+#### Soils {.tabset .tabset-pills}
+
 ```{r}
-ggplot(wa.filtered.symptoms,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+binary <- soil.filtered.symptoms
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+levels(binary$field.tree.canopy.symptoms)
+```
+
+
+##### Bedrock Depth
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+##### drclasscd
+
+
+```{r}
+ggplot(binary,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
+```
+
+##### drclasswettest
+```{r}
+ggplot(binary,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
 ```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
 ```
 
-###### slopegradwta
+##### hydgrpdcd
 ```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+ggplot(binary,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
-###### niccdcdpct
 ```{r}
-ggplot(wa.filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
 ```
+
+##### slopegradwta
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+##### niccdcdpct
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
+```
+
+
+***
+
+

@@ -7,9 +7,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Purpose
+
 The purpose of this Markdown Document is to record the methods for extracting soils data for the redcedar GPS points.
 
-Unforuntately, I had to do this with windows because the soils data I am first exploring are provided in arcmap database formats (.gdb). 
+Unfortunately, I had to do this with windows because the soils data I am first exploring are provided in arcmap database formats (.gdb). 
+
+## Additional Considerations
 
 * Possible options to move forward include: 
   + Maybe I could actually convert them in ArcMap to another format? 
@@ -30,8 +34,6 @@ Below are the methods I used to extract the soils data for the GPS points.
 ## Wrangle Shapefiles in ArcGIS Pro  
 
 ### Add Data Layers
-
-
 
   * Add Data
        + Add MapunitRaster_10m for each state, rename content based on state
