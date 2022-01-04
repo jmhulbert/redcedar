@@ -7,132 +7,331 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
 ```
 
-```{r}
+```{r include=FALSE}
 library(tidyverse)
 library(randomForest)
+library(caret)
 ```
 
+# Data
 
-### Import data
-
-Data downloaded manually from iNat. 
+The data used in the below visualizations are described in the [Data Wrangle folder](./data-wrangle). 
 
 ```{r}
 data <- read.csv("./data/observations-9.19.21.csv")
 ```
 
-### Prepare dataset for extracting environmental data with climateNA
-
 ```{r}
 gps <- data[c(1,22,23)]
-gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".")
-write.csv(gps,file="./data/gps.csv")
+gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
 ```
 
-
-## Decade 2011-2020
-
-### Import dataset with Decade 2011-2020
-
+```{r}
+normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
+normals <- rename(normals, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
 
 ```{r}
 lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
-lastdecade <- rename(lastdecade, id = ID2)
+lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 ```
-
-### Merge data
-
-```{r}
-combined <- left_join(data,lastdecade,by="id")  %>% filter(MAP >0,na.rm=TRUE)
-```
-
-## TOPO Data
-
-### Import TOPO Data
 
 ```{r}
 topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
-topo <- rename(topo, id = ID2)
+topo <- rename(topo, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 ```
-
-
-### Merge data
 
 ```{r}
-combined2 <- left_join(combined,topo,by="id")
+wasoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
+orsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
+wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+pnwsoils <- bind_rows(wasoils,orsoils)
 ```
-
-### Clean data 
-
-#### Add consistency to factors
-##### Symptoms 
-```{r}
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-combined2$field.tree.canopy.symptoms[combined2$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-combined2 <- combined2 %>% droplevels()
-combined2$field.tree.canopy.symptoms <- as.factor(combined2$field.tree.canopy.symptoms)
-levels(combined2$field.tree.canopy.symptoms)
-```
-
-##### Unhealthy trees
-```{r}
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-combined2 <- combined2 %>% droplevels()
-combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-levels(combined2$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-```
-
-##### Tree size
-```{r}
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-combined2$field.optional...tree.size[combined2$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-combined2 <- combined2 %>% droplevels()
-combined2$field.optional...tree.size <- as.factor(combined2$field.optional...tree.size)
-levels(combined2$field.optional...tree.size)
-```
-
-
-### Filter data
-
-#### Only include symptoms of interest
-```{r}
-filtered.symptoms <- combined2  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
-levels(filtered.symptoms$field.tree.canopy.symptoms)
-```
-
-### Subset variables
-```{r}
-filtered.symptoms <- filtered.symptoms[c(45:341)]
-names(filtered.symptoms)
-```
-
-### Set up train and test data 
 
 ```{r}
-
+#combinednormals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
 ```
-
-
-### Try random forests
 
 ```{r}
-rf <- randomForest(field.tree.canopy.symptoms ~.,filtered.symptoms,mtry=4,ntree=501,importance=TRUE,na.action=na.omit)
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.tree.canopy.symptoms <- as.factor(combo.decade$field.tree.canopy.symptoms)
+#levels(combo.decade$field.tree.canopy.symptoms)
 ```
+
+```{r}
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo.decade <- combo.decade %>% droplevels()
+combo.decade$field.optional...tree.size <- as.factor(combo.decade$field.optional...tree.size)
+#levels(combo.decade$field.optional...tree.size)
+```
+
+```{r}
+combo.decade <- combo.decade %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
+```
+
+All tree health categories
+
+```{r}
+combo.decade %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+Selected tree health categories
+
+```{r}
+filtered.symptoms <- combo.decade  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
+#levels(filtered.symptoms$field.tree.canopy.symptoms)
+```
+
+```{r}
+filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- combo.decade
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
+```
+
+Binary tree health categories
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+# Filter Data
+
+We need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
+
+> Note it might be interesting to know if the user was an important factor in predicting if the tree is healthy/unhealthy. 
+
+```{r}
+filtered.symptoms.and.factors <- filtered.symptoms[c(45:48,50:59,68:332,337:341,355:503)]
+```
+
+```{r include=FALSE}
+nearZeroVar(filtered.symptoms.and.factors)
+filtered.symptoms.and.factors.and.nearzerovar <- filtered.symptoms.and.factors[,-nearZeroVar(filtered.symptoms.and.factors)]
+#write.csv(filtered.symptoms.and.factors.and.nearzerovar,file="./data/troubleshoot.csv")
+```
+
+```{r}
+filtered.symptoms.and.factors.and.nearzerovar <-as.data.frame(unclass(filtered.symptoms.and.factors.and.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+```
+
+We continue to get the below error, but were able to work around it by imputing the data. 
+
+> Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
+
+# Impute data
+
+To impute the data we have to remove factors with >53 levels. 
+
+The below code lists the number of levels for the variables that are factors. 
+
+```{r include=FALSE}
+for (n in names(filtered.symptoms.and.factors.and.nearzerovar))
+  if (is.factor(filtered.symptoms.and.factors.and.nearzerovar[[n]])) {
+    print(n)
+    print(length(levels(filtered.symptoms.and.factors.and.nearzerovar[[n]])))
+  }
+```
+
+```{r}
+less.fifty.three <- filtered.symptoms.and.factors.and.nearzerovar[-c(242,243,281,301,324,328)]
+```
+
+Imputed data table
+
+```{r cache=TRUE}
+data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
+```
+
+
+# Train and test data 
+
+```{r}
+# Below code copied from https://www.youtube.com/watch?v=HeTT73WxKIc
+data_set_size = floor(nrow(data.imputed)*0.75)
+index <- sample(1:nrow(data.imputed),size=data_set_size)
+training <-data.imputed[index,]
+test <-data.imputed[-index,]
+``` 
+
+# Try creating random forest model from training data
+
+```{r}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=501, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
 
 ```{r}
 rf
 ```
 
+
 ```{r}
 plot(rf)
+```
+
+```{r}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=training$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +
+  theme_bw() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+```
+
+# Troubleshooting
+
+> Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
+
+I may be misunderstanding this error, but I think it is referring to the response variable? 
+
+The documentation [here](https://rdrr.io/rforge/randomForest/src/R/randomForest.default.R) describes the error prompt when:
+    if (classRF && !addclass && length(unique(y)) < 2)
+        stop("Need at least two classes to do classification.")
+
+```{r eval=FALSE}
+print(addclass <- is.null(training$field.tree.canopy.symptoms)) #not null
+print(classRF <- addclass || is.factor(training$field.tree.canopy.symptoms)) #is a factor
+print(length(unique(training$field.tree.canopy.symptoms))) # greater than 2
+```
+
+
+```{r eval=FALSE}
+experiment <-as.data.frame(unclass(filtered.symptoms.and.factors.and.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+str(experiment)
+```
+
+```{r eval=FALSE}
+data_set_size = floor(nrow(experiment)*0.75)
+index <- sample(1:nrow(experiment),size=data_set_size)
+training <-experiment[index,]
+test <-experiment[-index,]
+
+```
+
+```{r eval=FALSE}
+for (n in names(training))
+  if (is.factor(training[[n]])) {
+    print(n)
+    print(length(levels(training[[n]])))
+  }
+
+#print(levels(training[[n]]))
+```
+
+```{r eval=FALSE}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=experiment, mtry=4,ntree=501, importance=TRUE, na.action=na.omit)
+```
+
+Maybe I need to remove columns with more than 53 factors
+
+```{r eval=FALSE}
+names(experiment)
+experiment.less.fifty.three <- experiment[-c(242,243,281,301,324,328)]
+```
+
+```{r eval=FALSE}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=experiment.less.fifty.three, mtry=4,ntree=501, importance=TRUE, na.action=na.omit)
+```
+Removing factors with more than 53 levels didn't help randomForest, but it did help rfImpute
+
+```{r eval=FALSE}
+experiment.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= experiment.less.fifty.three, iter=6)
+```
+
+```{r eval=FALSE}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=experiment.imputed,ntree=501, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
+Wow it actually worked if the data is imputed. 
+
+```{r eval=FALSE}
+rf
+```
+
+```{r eval=FALSE}
+plot(rf)
+```
+
+```{r eval=FALSE}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=experiment.imputed$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +
+  theme_bw() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+```
+
+
+
+```{r eval=FALSE}
+#filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
+#filtered.symptoms %>% group_by(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.) %>% count()
+#filtered.symptoms %>% group_by(field.optional...tree.size) %>% count()
 ```
 

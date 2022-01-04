@@ -100,12 +100,10 @@ The following steps to wrangle the data were completed for the **decadal climate
 
 Here we attempt to merge the iNat, Climate, Topo and Soils data into a single dataset. 
 
-
-
 ```{r}
 #combinednormals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
 combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
-names(pnwsoils)
+#write.csv(combo.decade,file="./data/decade data combined.csv")
 ```
 
 The number of columns (factors) in the combined data set equal **`r length(combo.decade)`**. 
