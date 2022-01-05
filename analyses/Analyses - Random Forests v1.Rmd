@@ -14,6 +14,7 @@ knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/")
 library(tidyverse)
 library(randomForest)
 library(caret)
+library(rpart)
 ```
 
 # Data
@@ -127,10 +128,12 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 
 We need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
 
+We also need to remove other response variables like "field.percent.canopy.affected...." so it is not used as a predictor for tree health. 
+
 > Note it might be interesting to know if the user was an important factor in predicting if the tree is healthy/unhealthy. 
 
 ```{r}
-filtered.symptoms.and.factors <- filtered.symptoms[c(45:48,50:59,68:332,337:341,355:503)]
+filtered.symptoms.and.factors <- filtered.symptoms[c(45,46,50:59,68:332,337:341,355:503)]
 ```
 
 ```{r include=FALSE}
@@ -153,7 +156,7 @@ To impute the data we have to remove factors with >53 levels.
 
 The below code lists the number of levels for the variables that are factors. 
 
-```{r include=FALSE}
+```{r echo=TRUE, include=FALSE}
 for (n in names(filtered.symptoms.and.factors.and.nearzerovar))
   if (is.factor(filtered.symptoms.and.factors.and.nearzerovar[[n]])) {
     print(n)
@@ -161,9 +164,18 @@ for (n in names(filtered.symptoms.and.factors.and.nearzerovar))
   }
 ```
 
+* The following factors had more than 53 levels
+  + "muaggatt_musym" 
+  + "muaggatt_muname"
+  + "component_compname"
+  + "component_geomdesc"
+  + "component_taxclname"
+  + "component_taxsubgrp"
+
 ```{r}
-less.fifty.three <- filtered.symptoms.and.factors.and.nearzerovar[-c(242,243,281,301,324,328)]
+less.fifty.three <- filtered.symptoms.and.factors.and.nearzerovar[-c(240,241,279,299,322,326)]
 ```
+
 
 Imputed data table
 
@@ -185,7 +197,7 @@ test <-data.imputed[-index,]
 # Try creating random forest model from training data
 
 ```{r}
-rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=501, importance=TRUE, na.action=na.omit, proximity=TRUE)
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ```
 
 
@@ -198,7 +210,7 @@ rf
 plot(rf)
 ```
 
-```{r}
+```{r fig.height=6,fig.width=9}
 #Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
 
 ## Start by converting the proximity matrix into a distance matrix. 
@@ -224,6 +236,10 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
   ggtitle("MDS plot using (1 - Random Forest Proximities)")
 ```
+```{r fig.height=6,fig.width=9}
+varImpPlot(rf)
+```
+
 
 # Troubleshooting
 
