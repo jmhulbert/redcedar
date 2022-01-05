@@ -179,7 +179,7 @@ less.fifty.three <- filtered.symptoms.and.factors.and.nearzerovar[-c(240,241,279
 
 Imputed data table
 
-```{r cache=TRUE}
+```{r}
 data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
 ```
 
@@ -236,7 +236,7 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
   ggtitle("MDS plot using (1 - Random Forest Proximities)")
 ```
-```{r fig.height=6,fig.width=9}
+```{r fig.height=9,fig.width=12}
 varImpPlot(rf)
 ```
 
