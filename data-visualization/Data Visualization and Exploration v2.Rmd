@@ -447,4 +447,23 @@ ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree
 ```
 
 
+##### component_taxgrtgroup
+```{r}
+ggplot(binary,aes(component_taxgrtgroup,field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw()
+```
+##### component_taxpartsize
+```{r}
+levels(binary$component_taxpartsize)
+ggplot(binary,aes(component_taxpartsize,field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw()
+```
+
+##### muaggatt_wtdepaprjunmin
+
+Water Table Depth - April - June - Minimum
+```{r}
+str(binary$muaggatt_wtdepaprjunmin)
+ggplot(binary,aes(muaggatt_wtdepaprjunmin,field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+theme_bw()
+```
+
+
 ***

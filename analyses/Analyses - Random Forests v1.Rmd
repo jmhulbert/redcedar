@@ -17,7 +17,37 @@ library(caret)
 library(rpart)
 ```
 
-# Data
+### Purpose
+
+The purpose of this analysis document is to ensure the reproducability of the results by guiding the reader through the random forest analysis of the factors associated with the health of western redcedar. 
+
+### Approach
+
+Root data were shared by citizen scientists in the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project on iNaturalist. 
+
+* These data were then combined with 
+ + Climate data derived using the ClimateNA tool. Instructions for how this tool was used are included in the [climate subfolder](/climate).
+ + Topographic data extraced from DEM rasters. Preliminary methods for extracting topo data from GPS points are available in the [topo subfolder](/topo). 
+ + Soils data downloaded from gSSURRGO databases for Washington and Oregon. Instructions for extracting the soils data using Arc GIS Pro are included  in the [soils subfolder](/soils). 
+
+All of the data used in the below analyses are described in the [Data Wrangle folder](./data-wrangle). 
+
+
+### Limitations
+
+* Below are some limitations to these results to clarify
+  + representation of the data were heavily biased to the western side of Washington and Oregon (west of the Cascades). 
+
+
+### Next steps
+ * Do following before next commit
+    + Add 30yr normals into data (will need to rename all factors with 30y precidence probably).
+    + calculate better variables (aspect, and those that combine both topo and climate data?) 
+    + look into what is happening with -9999 values in components
+
+
+
+### Data
 
 The data used in the below visualizations are described in the [Data Wrangle folder](./data-wrangle). 
 
@@ -98,33 +128,8 @@ All tree health categories
 combo.decade %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
-Selected tree health categories
 
-```{r}
-filtered.symptoms <- combo.decade  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
-#levels(filtered.symptoms$field.tree.canopy.symptoms)
-```
-
-```{r}
-filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
-```
-
-```{r}
-level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
-
-binary <- combo.decade
-binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
-#levels(binary$field.tree.canopy.symptoms)
-binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
-```
-
-Binary tree health categories
-
-```{r}
-binary %>% group_by(field.tree.canopy.symptoms) %>% count()
-```
-
-# Filter Data
+### Filter Data
 
 We need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
 
@@ -132,35 +137,119 @@ We also need to remove other response variables like "field.percent.canopy.affec
 
 > Note it might be interesting to know if the user was an important factor in predicting if the tree is healthy/unhealthy. 
 
+There are also a number of factors that should probably be removed because they may be biasing the data. For example, only trees with the 'other factor' question may only be answered for unhealthy trees. We need to think about this a bit more. 
+
 ```{r}
-filtered.symptoms.and.factors <- filtered.symptoms[c(45,46,50:59,68:332,337:341,355:503)]
+combo.decade.filtered<- combo.decade %>% select(-c("field.optional...did.the.tree.have.heat.damage"
+,"field.percent.canopy.affected...."
+,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
+,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
+,"muaggatt_mukey"
+,"component_mukey"
+,"id"  
+,"observed_on_string"                                                                     
+,"observed_on"                                                                            
+,"time_observed_at"                                                                       
+,"time_zone"                                                                              
+,"user_id"                                                                                
+,"user_login"                                                                             
+,"created_at"                                                                             
+,"updated_at"
+,"quality_grade"                                                                          
+,"license"                                                                                
+,"url"                                                                                    
+,"image_url"                                                                              
+,"sound_url"                                                                              
+,"tag_list"                                                                               
+,"description"                                                                            
+,"num_identification_agreements"                                                          
+,"num_identification_disagreements"                                                       
+,"captive_cultivated"                                                                     
+,"oauth_application_id"                                                                   
+,"place_guess"                                                                            
+,"latitude"                                                                               
+,"longitude"                                                                              
+,"positional_accuracy"                                                                    
+,"private_place_guess"                                                                    
+,"private_latitude"                                                                       
+,"private_longitude"                                                                      
+,"public_positional_accuracy"                                                             
+,"geoprivacy"                                                                             
+,"taxon_geoprivacy"                                                                       
+,"coordinates_obscured"                                                                   
+,"positioning_method"                                                                     
+,"positioning_device"                                                                     
+,"place_town_name"                                                                        
+,"place_county_name"                                                                      
+,"place_state_name"                                                                       
+,"place_country_name"                                                                     
+,"place_admin1_name"                                                                      
+,"place_admin2_name"                                                                      
+,"species_guess"                                                                          
+,"scientific_name"
+,"common_name"                                                                            
+,"iconic_taxon_name"                                                                      
+,"taxon_id"          
+,"field.other.factors...are.there.signs.or.symptoms.of.insect..diseases..or.other.damage."
+,"field.optional...what..other.factors..were.observed." 
+, "field.optional...were.there.any.other.unhealthy.plant.species.on.the.site."             
+ ,"field.optional...timing.of.symptoms.estimate"                                           
+, "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
+, "field.optional...can.we.follow.up.with.you."
+,"field_1.x"                                                                              
+, "lat.x"                                                                                  
+,"long.x"                                                                                 
+, "el.x"      
+, "OID_"                                                                                   
+, "field_1.y"                                                                              
+, "lat.y"                                                                                  
+, "long.y"                                                                                 
+, "el.y"                                                                                   
+, "Aspect.y"                                                                               
+, "Profilecurv.y"                                                                          
+, "Tangentialc.y"                                                                          
+, "Slope.y"                                                                                
+, "PNWSRTMDEM.y"                                                                           
+, "RASTERVALU"                                                                             
+, "VAT_MapunitRaster_10m_Count"                                                            
+, "VAT_MapunitRaster_10m_MUKEY"
+,"X" 
+,"Latitude"                                    
+,"Longitude"
+,"field.notes"  
+))
+```
+
+
+```{r}
+# combo.decade.filtered <- combo.decade.filtered[c(45,50:59,68:332,337:341,355:394,396:503)]
 ```
 
 ```{r include=FALSE}
-nearZeroVar(filtered.symptoms.and.factors)
-filtered.symptoms.and.factors.and.nearzerovar <- filtered.symptoms.and.factors[,-nearZeroVar(filtered.symptoms.and.factors)]
-#write.csv(filtered.symptoms.and.factors.and.nearzerovar,file="./data/troubleshoot.csv")
+nearZeroVar(combo.decade.filtered)
+combo.decade.filtered.nearzerovar <- combo.decade.filtered[,-nearZeroVar(combo.decade.filtered)]
+#write.csv(combo.decade.filtered,file="./data/troubleshoot.csv")
 ```
 
 ```{r}
-filtered.symptoms.and.factors.and.nearzerovar <-as.data.frame(unclass(filtered.symptoms.and.factors.and.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+combo.decade.filtered.nearzerovar <-as.data.frame(unclass(combo.decade.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
+
+### Impute data
 
 We continue to get the below error, but were able to work around it by imputing the data. 
 
 > Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
-
-# Impute data
 
 To impute the data we have to remove factors with >53 levels. 
 
 The below code lists the number of levels for the variables that are factors. 
 
 ```{r echo=TRUE, include=FALSE}
-for (n in names(filtered.symptoms.and.factors.and.nearzerovar))
-  if (is.factor(filtered.symptoms.and.factors.and.nearzerovar[[n]])) {
+for (n in names(combo.decade.filtered.nearzerovar))
+  if (is.factor(combo.decade.filtered.nearzerovar[[n]])) {
     print(n)
-    print(length(levels(filtered.symptoms.and.factors.and.nearzerovar[[n]])))
+    print(length(levels(combo.decade.filtered.nearzerovar[[n]])))
   }
 ```
 
@@ -173,9 +262,8 @@ for (n in names(filtered.symptoms.and.factors.and.nearzerovar))
   + "component_taxsubgrp"
 
 ```{r}
-less.fifty.three <- filtered.symptoms.and.factors.and.nearzerovar[-c(240,241,279,299,322,326)]
+less.fifty.three <- combo.decade.filtered.nearzerovar %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
 ```
-
 
 Imputed data table
 
@@ -183,8 +271,7 @@ Imputed data table
 data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
 ```
 
-
-# Train and test data 
+### Train and test data 
 
 ```{r}
 # Below code copied from https://www.youtube.com/watch?v=HeTT73WxKIc
@@ -194,7 +281,163 @@ training <-data.imputed[index,]
 test <-data.imputed[-index,]
 ``` 
 
-# Try creating random forest model from training data
+### Try creating random forest model from training data
+
+```{r}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
+
+```{r}
+rf
+```
+
+
+```{r}
+plot(rf)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=training$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +
+  theme_bw() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+```
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
+```
+
+### Concerns
+
+* Below are some concerns that should be investigated
++ The error rate is pretty high  (~35%)
++ The MDS plots only represent a small percentage of the 
+
+### Questions
+
+* Below are some questions to resolve moving forward
+  + What is difference between MeanDecreaseAccuracy ad MeanDecreaseGini
+    + MeanDecreaseAccuracy - how much the factor affected classification trees across, averaged for all 2000 trees?
+    + MeanDecreaseGini - variation in influence of factor compared to other factors? 
+
+
+### Explore different groupings
+
+#### Five filtered Symptoms
+Selected tree health categories
+
+```{r}
+filtered.symptoms <- data.imputed  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
+#levels(filtered.symptoms$field.tree.canopy.symptoms)
+```
+
+```{r}
+filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+###### Train and test data 
+
+```{r}
+# Below code copied from https://www.youtube.com/watch?v=HeTT73WxKIc
+data_set_size = floor(nrow(filtered.symptoms)*0.75)
+index <- sample(1:nrow(filtered.symptoms),size=data_set_size)
+training <-filtered.symptoms[index,]
+test <-filtered.symptoms[-index,]
+``` 
+
+###### Try creating random forest model from training data
+
+```{r}
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
+
+```{r}
+rf
+```
+
+
+```{r}
+plot(rf)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=training$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +
+  theme_bw() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+```
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
+```
+
+#### Binary symptoms
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- data.imputed
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
+```
+
+Binary tree health categories
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+##### Train and test data 
+
+```{r}
+# Below code copied from https://www.youtube.com/watch?v=HeTT73WxKIc
+data_set_size = floor(nrow(binary)*0.75)
+index <- sample(1:nrow(binary),size=data_set_size)
+training <-binary[index,]
+test <-binary[-index,]
+``` 
+
+##### Try creating random forest model from training data
 
 ```{r}
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
@@ -241,7 +484,8 @@ varImpPlot(rf)
 ```
 
 
-# Troubleshooting
+
+### Troubleshooting
 
 > Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
 
@@ -285,7 +529,9 @@ for (n in names(training))
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=experiment, mtry=4,ntree=501, importance=TRUE, na.action=na.omit)
 ```
 
-Maybe I need to remove columns with more than 53 factors
+It is possible some of the NA or -9999 values are causing issues. 
+
+We can try imputing the data, however this requires us to remove columns with more than 53 factors, which probably makes sense anyway. 
 
 ```{r eval=FALSE}
 names(experiment)
@@ -295,7 +541,7 @@ experiment.less.fifty.three <- experiment[-c(242,243,281,301,324,328)]
 ```{r eval=FALSE}
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=experiment.less.fifty.three, mtry=4,ntree=501, importance=TRUE, na.action=na.omit)
 ```
-Removing factors with more than 53 levels didn't help randomForest, but it did help rfImpute
+Removing factors with more than 53 levels didn't resolve the error from the randomForest command, but it did allow us to use the rfImpute command to impute our data. 
 
 ```{r eval=FALSE}
 experiment.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= experiment.less.fifty.three, iter=6)
