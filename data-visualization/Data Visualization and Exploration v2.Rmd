@@ -315,23 +315,23 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill
 
 ***
 
-### Binary Data {.tabset .tabset-pills}
+## Binary Data {.tabset .tabset-pills}
 
-#### Climate {.tabset .tabset-pills}
+### Climate {.tabset .tabset-pills}
 
-##### MAT
+#### MAT
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-###### Site Severity
+##### Site Severity
 
 ```{r include=FALSE}
 ggplot(binary,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-###### Size Class
+##### Size Class
 
 ```{r include=FALSE}
 ggplot(binary,aes(field.optional...tree.size,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
@@ -345,25 +345,25 @@ ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms
 ggplot(binary,aes(field.tree.canopy.symptoms,MAT,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### MAP
+#### MAP
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MAP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### AHM
+#### AHM
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,AHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### SHM
+#### SHM
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-###### Filtered SHM <200
+##### Filtered SHM <200
 ```{r}
 binary.shm <- binary %>% filter(SHM<200) %>% droplevels()
 ```
@@ -372,25 +372,25 @@ binary.shm <- binary %>% filter(SHM<200) %>% droplevels()
 ggplot(binary.shm,aes(field.tree.canopy.symptoms,SHM,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### MSP
+#### MSP
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,MSP,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### CMD
+#### CMD
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-##### Eref
+#### Eref
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
-#### Topo
+### Topo
 
 ```{r}
 ggplot(binary,aes(PNWSRTMDEM.x,CMD,color=field.tree.canopy.symptoms))+geom_smooth()
@@ -400,15 +400,15 @@ ggplot(binary,aes(PNWSRTMDEM.x,CMD,color=field.tree.canopy.symptoms))+geom_smoot
 ggplot(binary,aes(field.tree.canopy.symptoms,Slope.x,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Slope (degrees)",x="Symptoms")
 ```
 
-#### Soils {.tabset .tabset-pills}
+### Soils {.tabset .tabset-pills}
 
-##### Bedrock Depth
+#### Bedrock Depth
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_brockdepmin,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
-##### drclasscd
+#### drclasscd
 
 
 ```{r}
@@ -418,7 +418,7 @@ ggplot(binary,aes(muaggatt_drclassdcd,field.tree.canopy.symptoms,color=field.tre
 ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclassdcd)
 ```
 
-##### drclasswettest
+#### drclasswettest
 ```{r}
 ggplot(binary,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
@@ -427,7 +427,7 @@ ggplot(binary,aes(muaggatt_drclasswettest,field.tree.canopy.symptoms,color=field
 ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_drclasswettest)
 ```
 
-##### hydgrpdcd
+#### hydgrpdcd
 ```{r}
 ggplot(binary,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
@@ -436,28 +436,32 @@ ggplot(binary,aes(muaggatt_hydgrpdcd,field.tree.canopy.symptoms,color=field.tree
 ggplot(binary,aes(field.tree.canopy.symptoms,fill=field.tree.canopy.symptoms))+geom_bar(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")+facet_wrap(~muaggatt_hydgrpdcd)
 ```
 
-##### slopegradwta
+#### slopegradwta
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
-##### niccdcdpct
+#### niccdcdpct
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
 
-##### component_taxgrtgroup
+#### component_taxgrtgroup
 ```{r}
 ggplot(binary,aes(component_taxgrtgroup,field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw()
 ```
-##### component_taxpartsize
+#### component_taxpartsize
 ```{r}
 levels(binary$component_taxpartsize)
 ggplot(binary,aes(component_taxpartsize,field.tree.canopy.symptoms))+geom_count(show.legend=FALSE)+coord_flip()+theme_bw()
 ```
 
-##### muaggatt_wtdepaprjunmin
+```{r}
+ggplot(binary,aes(component_taxpartsize,fill=field.tree.canopy.symptoms))+geom_bar(position="dodge")+coord_flip()+theme_bw()
+```
+
+#### muaggatt_wtdepaprjunmin
 
 Water Table Depth - April - June - Minimum
 ```{r}

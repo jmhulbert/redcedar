@@ -41,8 +41,7 @@ All of the data used in the below analyses are described in the [Data Wrangle fo
 
 ### Next steps
  * Do following before next commit
-    + Add 30yr normals into data (will need to rename all factors with 30y precidence probably).
-    + calculate better variables (aspect, and those that combine both topo and climate data?) 
+    + calculate better topographic variables (aspect, and those that combine both topo and climate data?) 
     + look into what is happening with -9999 values in components
 
 
@@ -62,7 +61,8 @@ gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mu
 
 ```{r}
 normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
-normals <- rename(normals, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
+normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 ```
 
 ```{r}
@@ -84,48 +84,49 @@ pnwsoils <- bind_rows(wasoils,orsoils)
 ```
 
 ```{r}
-#combinednormals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
-combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+#combo.normals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+#combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id") 
+combo <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")  %>% left_join(.,normals,by="id") 
 ```
 
 ```{r}
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.tree.canopy.symptoms <- as.factor(combo.decade$field.tree.canopy.symptoms)
-#levels(combo.decade$field.tree.canopy.symptoms)
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo <- combo %>% droplevels()
+combo$field.tree.canopy.symptoms <- as.factor(combo$field.tree.canopy.symptoms)
+#levels(combo$field.tree.canopy.symptoms)
 ```
 
 ```{r}
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-#levels(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo <- combo %>% droplevels()
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
 ```{r}
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.optional...tree.size <- as.factor(combo.decade$field.optional...tree.size)
-#levels(combo.decade$field.optional...tree.size)
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo <- combo %>% droplevels()
+combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
+#levels(combo$field.optional...tree.size)
 ```
 
 ```{r}
-combo.decade <- combo.decade %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
+combo <- combo %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
 ```
 
 All tree health categories
 
 ```{r}
-combo.decade %>% group_by(field.tree.canopy.symptoms) %>% count()
+combo %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
 
@@ -140,7 +141,7 @@ We also need to remove other response variables like "field.percent.canopy.affec
 There are also a number of factors that should probably be removed because they may be biasing the data. For example, only trees with the 'other factor' question may only be answered for unhealthy trees. We need to think about this a bit more. 
 
 ```{r}
-combo.decade.filtered<- combo.decade %>% select(-c("field.optional...did.the.tree.have.heat.damage"
+combo.filtered<- combo %>% select(-c("field.optional...did.the.tree.have.heat.damage"
 ,"field.percent.canopy.affected...."
 ,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
 ,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
@@ -216,23 +217,24 @@ combo.decade.filtered<- combo.decade %>% select(-c("field.optional...did.the.tre
 ,"X" 
 ,"Latitude"                                    
 ,"Longitude"
-,"field.notes"  
+,"field.notes"
+,"norm_X"                                                                                   
+,"norm_Latitude"                                                                            
+,"norm_Longitude"                                                                           
+,"norm_Elevation"
 ))
+# combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
 ```
 
-
-```{r}
-# combo.decade.filtered <- combo.decade.filtered[c(45,50:59,68:332,337:341,355:394,396:503)]
-```
 
 ```{r include=FALSE}
-nearZeroVar(combo.decade.filtered)
-combo.decade.filtered.nearzerovar <- combo.decade.filtered[,-nearZeroVar(combo.decade.filtered)]
+nearZeroVar(combo.filtered)
+combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 #write.csv(combo.decade.filtered,file="./data/troubleshoot.csv")
 ```
 
 ```{r}
-combo.decade.filtered.nearzerovar <-as.data.frame(unclass(combo.decade.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
 ### Impute data
@@ -246,10 +248,10 @@ To impute the data we have to remove factors with >53 levels.
 The below code lists the number of levels for the variables that are factors. 
 
 ```{r echo=TRUE, include=FALSE}
-for (n in names(combo.decade.filtered.nearzerovar))
-  if (is.factor(combo.decade.filtered.nearzerovar[[n]])) {
+for (n in names(combo.filtered.nearzerovar))
+  if (is.factor(combo.filtered.nearzerovar[[n]])) {
     print(n)
-    print(length(levels(combo.decade.filtered.nearzerovar[[n]])))
+    print(length(levels(combo.filtered.nearzerovar[[n]])))
   }
 ```
 
@@ -262,7 +264,7 @@ for (n in names(combo.decade.filtered.nearzerovar))
   + "component_taxsubgrp"
 
 ```{r}
-less.fifty.three <- combo.decade.filtered.nearzerovar %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
+less.fifty.three <- combo.filtered.nearzerovar %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
 ```
 
 Imputed data table
@@ -477,7 +479,9 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
   theme_bw() +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
-  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+  ggtitle("MDS plot using (1 - Random Forest Proximities)") + 
+  scale_color_viridis_d("Tree Health",  begin = 0.8,
+  end = 0.2)
 ```
 ```{r fig.height=9,fig.width=12}
 varImpPlot(rf)
