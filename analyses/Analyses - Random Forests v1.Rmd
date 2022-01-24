@@ -130,7 +130,7 @@ combo %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
 
-### Filter Data
+#### Filter Data
 
 We need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
 
@@ -237,7 +237,7 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
-### Impute data
+#### Impute data
 
 We continue to get the below error, but were able to work around it by imputing the data. 
 
@@ -273,7 +273,7 @@ Imputed data table
 data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
 ```
 
-### Train and test data 
+#### Train and test data 
 
 ```{r}
 # Below code copied from https://www.youtube.com/watch?v=HeTT73WxKIc
@@ -283,7 +283,7 @@ training <-data.imputed[index,]
 test <-data.imputed[-index,]
 ``` 
 
-### Try creating random forest model from training data
+#### Model
 
 ```{r}
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=training, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
@@ -329,13 +329,13 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
 varImpPlot(rf)
 ```
 
-### Concerns
+##### Concerns
 
 * Below are some concerns that should be investigated
 + The error rate is pretty high  (~35%)
 + The MDS plots only represent a small percentage of the 
 
-### Questions
+##### Questions
 
 * Below are some questions to resolve moving forward
   + What is difference between MeanDecreaseAccuracy ad MeanDecreaseGini
@@ -486,6 +486,29 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
 ```{r fig.height=9,fig.width=12}
 varImpPlot(rf)
 ```
+
+```{r}
+getTree(rf,k=1,labelVar=TRUE)
+```
+
+
+##### Visualize sample tree
+
+Fit a single recursive partitioning or classification tree.
+Followed instructions from this [youtube video](https://www.youtube.com/watch?v=_o5VoE7ZO-U).
+
+```{r}
+single.tree <- rpart(field.tree.canopy.symptoms ~ .,method="class", control=rpart.control(cp=0.01,minsplit=10),data=training)
+```
+
+
+
+```{r}
+par(mfrow=c(1,1),xpd=NA,cex=0.75)
+plot(single.tree)
+text(single.tree,use.n=T)
+```
+
 
 
 
