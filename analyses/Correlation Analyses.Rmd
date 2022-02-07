@@ -99,7 +99,27 @@ pnwsoils <- bind_rows(wasoils,orsoils)
 ```
 
 ```{r}
-pnwsoils.filtered.nearzerovar.numeric <- pnwsoils[,-nearZeroVar(pnwsoils)] %>% filter(RASTERVALU>=0, na.rm=TRUE) %>% select_if(is.numeric)
+pnwsoils.filtered<- pnwsoils %>% select(-c("muaggatt_mukey"
+,"component_mukey"
+,"id"  
+,"field_1"                                                                              
+, "OID_"                                                                                   
+, "lat"                                                                                  
+, "long"                                                                                 
+, "el"                                                                                   
+, "Aspect"                                                                               
+, "Profilecurv"                                                                          
+, "Tangentialc"                                                                          
+, "Slope"                                                                                
+, "PNWSRTMDEM"                                                                           
+, "RASTERVALU"                                                                             
+, "VAT_MapunitRaster_10m_Count"                                                            
+, "VAT_MapunitRaster_10m_MUKEY"
+))
+```
+
+```{r}
+pnwsoils.filtered.nearzerovar.numeric <- pnwsoils.filtered[,-nearZeroVar(pnwsoils.filtered)] %>% select_if(is.numeric)
 ```
 
 ```{r}
@@ -108,8 +128,20 @@ rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric)
 ```
 
 ```{r}
-rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric, type="flatten", graph=FALSE)
+#rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric, type="flatten", graph=FALSE)
+pnwsoils.corr.values <- rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric, type="flatten", graph=FALSE)  %>% bind_rows(.)
 ```
+
+
+```{r}
+pnwsoils.corr.values.low.corr <- pnwsoils.corr.values %>% filter(cor< 0.1 & cor> -0.1)
+pnwsoils.corr.values.high.corr <- pnwsoils.corr.values %>% filter(cor> 0.9 | cor< -0.9)
+pnwsoils.corr.values.low.corr
+```
+
+
+Evaluating pnwsoils.corr.values.low.corr shows some factors that need to be removed (e.g. cokey mukey )
+
 
 ```{r}
 #### Subset to numeric data only
