@@ -88,7 +88,7 @@ Below are the methods I used to extract the soils data for the GPS points.
         
   * Export GPS data with soils data as .csv
         + Right click layer created above (Extract_GPS_Washington) -> Data -> Export Table
-          + Inpout rows - Extract_GPS_Washington 
+          + Input rows - Extract_GPS_Washington 
           + browse to folder to save file (e.g. redcedar/serverfiles/data)
           + be sure to add '.csv' to end of file name (e.g. Washington_GPS_Soils_Data_muaggatt_component.csv)
       

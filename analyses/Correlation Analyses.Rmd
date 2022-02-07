@@ -1,0 +1,295 @@
+---
+title: "Correlation Analyses"
+author: "Joey Hulbert"
+date: "2/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(randomForest)
+library(caret)
+library(rpart)
+library(corrplot)
+#install.packages("remotes")
+#remotes::install_github("emilelatour/lamisc")
+source("http://www.sthda.com/upload/rquery_cormat.r") # more info at http://www.sthda.com/english/wiki/correlation-matrix-an-r-function-to-do-all-you-need
+```
+
+### Purpose
+
+The purpose of this analysis document is to ensure the reproducability of the results by guiding the reader through the random forest analysis of the factors associated with the health of western redcedar. 
+
+In this document, we explore the correlation between explanitory variables. 
+
+### Approach
+
+Root data were shared by citizen scientists in the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project on iNaturalist. 
+
+* These data were then combined with 
+ + Climate data derived using the ClimateNA tool. Instructions for how this tool was used are included in the [climate subfolder](/climate).
+ + Topographic data extraced from DEM rasters. Preliminary methods for extracting topo data from GPS points are available in the [topo subfolder](/topo). 
+ + Soils data downloaded from gSSURRGO databases for Washington and Oregon. Instructions for extracting the soils data using Arc GIS Pro are included  in the [soils subfolder](/soils). 
+
+All of the data used in the below analyses are described in the [Data Wrangle folder](./data-wrangle). 
+
+
+
+
+### Data
+
+The data used in the below visualizations are described in the [Data Wrangle folder](./data-wrangle). 
+
+```{r}
+data <- read.csv("./data/observations-9.19.21.csv")
+```
+
+```{r}
+gps <- data[c(1,22,23)]
+gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
+```
+
+### Climate variables averaged over '30 year normals'
+
+```{r}
+normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
+colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
+normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+### Climate variables averaged over last decade '2011 to 2020'
+
+```{r}
+lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
+lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+Subset lastdecade data to only numeric variables without zero variance (remove columns that only have one value for every ob)
+```{r}
+lastdecade.filtered.nearzerovar.numeric <- lastdecade[,-nearZeroVar(lastdecade)] %>% select_if(is.numeric)
+```
+
+```{r}
+corr.lastdecade.filtered.nearzerovar.numeric <- cor(lastdecade.filtered.nearzerovar.numeric)
+rquery.cormat(corr.lastdecade.filtered.nearzerovar.numeric)
+```
+
+
+### Topographic data 
+
+```{r}
+topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
+topo <- rename(topo, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+```
+
+### Soils data
+
+
+```{r}
+wasoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
+orsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
+wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+pnwsoils <- bind_rows(wasoils,orsoils)
+```
+
+```{r}
+pnwsoils.filtered.nearzerovar.numeric <- pnwsoils[,-nearZeroVar(pnwsoils)] %>% filter(RASTERVALU>=0, na.rm=TRUE) %>% select_if(is.numeric)
+```
+
+```{r}
+corr.pnwsoils.filtered.nearzerovar.numeric <- cor(pnwsoils.filtered.nearzerovar.numeric,use="pairwise.complete.obs")
+rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric)
+```
+
+```{r}
+rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric, type="flatten", graph=FALSE)
+```
+
+```{r}
+#### Subset to numeric data only
+#p.mat.soils.numeric <- cor_pmat(corr.pnwsoils.filtered.nearzerovar.numeric)
+#corrplot(corr.pnwsoils.filtered.nearzerovar.numeric,method="color")
+#ggcorrplot(corr.pnwsoils.filtered.nearzerovar.numeric) (need library ggcorrplot)
+```
+
+
+
+## All data combined
+
+
+```{r}
+#combo.normals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+#combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id") 
+combo <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")  %>% left_join(.,normals,by="id") 
+```
+
+```{r}
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo <- combo %>% droplevels()
+combo$field.tree.canopy.symptoms <- as.factor(combo$field.tree.canopy.symptoms)
+#levels(combo$field.tree.canopy.symptoms)
+```
+
+```{r}
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo <- combo %>% droplevels()
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo <- combo %>% droplevels()
+combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
+#levels(combo$field.optional...tree.size)
+```
+Filter trees to only those with soils data (Oregon and Washington)
+
+```{r}
+combo <- combo %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
+```
+
+All tree health categories
+
+```{r}
+combo %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+
+#### Filter Data
+
+We need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
+
+We also need to remove other response variables like "field.percent.canopy.affected...." so it is not used as a predictor for tree health. 
+
+> Note it might be interesting to know if the user was an important factor in predicting if the tree is healthy/unhealthy. 
+
+There are also a number of factors that should probably be removed because they may be biasing the data. For example, only trees with the 'other factor' question may only be answered for unhealthy trees. We need to think about this a bit more. 
+
+```{r}
+combo.filtered<- combo %>% select(-c("field.optional...did.the.tree.have.heat.damage"
+,"field.percent.canopy.affected...."
+,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
+,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
+,"muaggatt_mukey"
+,"component_mukey"
+,"id"  
+,"observed_on_string"                                                                     
+,"observed_on"                                                                            
+,"time_observed_at"                                                                       
+,"time_zone"                                                                              
+,"user_id"                                                                                
+,"user_login"                                                                             
+,"created_at"                                                                             
+,"updated_at"
+,"quality_grade"                                                                          
+,"license"                                                                                
+,"url"                                                                                    
+,"image_url"                                                                              
+,"sound_url"                                                                              
+,"tag_list"                                                                               
+,"description"                                                                            
+,"num_identification_agreements"                                                          
+,"num_identification_disagreements"                                                       
+,"captive_cultivated"                                                                     
+,"oauth_application_id"                                                                   
+,"place_guess"                                                                            
+,"latitude"                                                                               
+,"longitude"                                                                              
+,"positional_accuracy"                                                                    
+,"private_place_guess"                                                                    
+,"private_latitude"                                                                       
+,"private_longitude"                                                                      
+,"public_positional_accuracy"                                                             
+,"geoprivacy"                                                                             
+,"taxon_geoprivacy"                                                                       
+,"coordinates_obscured"                                                                   
+,"positioning_method"                                                                     
+,"positioning_device"                                                                     
+,"place_town_name"                                                                        
+,"place_county_name"                                                                      
+,"place_state_name"                                                                       
+,"place_country_name"                                                                     
+,"place_admin1_name"                                                                      
+,"place_admin2_name"                                                                      
+,"species_guess"                                                                          
+,"scientific_name"
+,"common_name"                                                                            
+,"iconic_taxon_name"                                                                      
+,"taxon_id"          
+,"field.other.factors...are.there.signs.or.symptoms.of.insect..diseases..or.other.damage."
+,"field.optional...what..other.factors..were.observed." 
+, "field.optional...were.there.any.other.unhealthy.plant.species.on.the.site."             
+ ,"field.optional...timing.of.symptoms.estimate"                                           
+, "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
+, "field.optional...can.we.follow.up.with.you."
+,"field_1.x"                                                                              
+, "lat.x"                                                                                  
+,"long.x"                                                                                 
+, "el.x"      
+, "OID_"                                                                                   
+, "field_1.y"                                                                              
+, "lat.y"                                                                                  
+, "long.y"                                                                                 
+, "el.y"                                                                                   
+, "Aspect.y"                                                                               
+, "Profilecurv.y"                                                                          
+, "Tangentialc.y"                                                                          
+, "Slope.y"                                                                                
+, "PNWSRTMDEM.y"                                                                           
+, "RASTERVALU"                                                                             
+, "VAT_MapunitRaster_10m_Count"                                                            
+, "VAT_MapunitRaster_10m_MUKEY"
+,"X" 
+,"Latitude"                                    
+,"Longitude"
+,"field.notes"
+,"norm_X"                                                                                   
+,"norm_Latitude"                                                                            
+,"norm_Longitude"                                                                           
+,"norm_Elevation"
+))
+# combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
+```
+
+Remove variables with variables that have near zero standard deviations (entire column is same value)
+
+```{r include=FALSE}
+nearZeroVar(combo.filtered)
+combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
+#write.csv(combo.decade.filtered,file="./data/troubleshoot.csv")
+```
+
+```{r}
+combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+```
+
+```{r}
+combo.filtered.nearzerovar.numeric <- combo.filtered[,-nearZeroVar(combo.filtered)] %>% select_if(is.numeric)
+```
+
+```{r}
+corr.combo.filtered.nearzerovar.numeric <- cor(combo.filtered.nearzerovar.numeric, use="pairwise.complete.obs")
+combo.corr.values <- rquery.cormat(corr.combo.filtered.nearzerovar.numeric, type="flatten", graph=FALSE) %>% bind_rows(.)
+```
+
+```{r}
+combo.corr.values.low.corr <- combo.corr.values %>% filter(cor< 0.1 & cor> -0.1)
+combo.corr.values.high.corr <-combo.corr.values %>% filter(cor> 0.9 | cor< -0.9)
+```
+
