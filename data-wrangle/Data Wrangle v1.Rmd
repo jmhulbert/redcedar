@@ -94,7 +94,7 @@ pnwsoils <- bind_rows(wasoils,orsoils)
 
 # Data Wrangle 
 
-The following steps to wrangle the data were completed for the **decadal climate data only**. 
+The following steps to wrangle the data were completed for the **decade climate data only**. 
 
 ### Merge Data
 

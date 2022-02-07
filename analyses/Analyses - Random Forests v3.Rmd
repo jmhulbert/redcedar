@@ -44,6 +44,7 @@ knit_hooks$set(output = function(x, options) {
 
 * Comments about this Analysis version
   + It does not subset the data into test or train
+    + although I am reconsidering this
   + It only models 'filtered symptoms (5 groups)
 
 
@@ -74,7 +75,8 @@ All of the data used in the below analyses are described in the [Data Wrangle fo
     + calculate better topographic variables (aspect, and those that combine both topo and climate data?) 
     + look into what is happening with -9999 values in components
     + does it make sense to group dead tops?
-    + try hyperparameter tuning (see https://www.youtube.com/watch?v=Ptd2NXdtHl4 and https://jsimkins2.github.io/geog473-673/random-forest-modeling.html) 
+    + try hyperparameter tuning to determine best parameters for model (see https://www.youtube.com/watch?v=Ptd2NXdtHl4 and https://jsimkins2.github.io/geog473-673/random-forest-modeling.html) 
+    + remove climate data for individual months?
 
 
 ### Notes from meeting with MC
@@ -86,7 +88,16 @@ All of the data used in the below analyses are described in the [Data Wrangle fo
     + explore validatoin tools built into randomforests that could be used instead of subsetting the data
     + if you're not predicting into the future, than we may not need to split the dataset
   
-Just interested in identifying drivers
+  * Create a map (WA and OR)
+    + Soil Great Groups
+      + Map using ArcGIS and gsurrgo data
+    + CMI values
+      + Export DEM of OR and WA (90mx90m if possible)
+        + Create DEM in ArcGIS?
+      + Upload DEM in ClimateNA tool (see https://www.youtube.com/watch?v=9IkcmnzlNqg&feature=youtu.be)
+      
+
+
 
 ### Data
 
