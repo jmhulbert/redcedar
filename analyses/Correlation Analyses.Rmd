@@ -133,6 +133,7 @@ pnwsoils.corr.values <- rquery.cormat(corr.pnwsoils.filtered.nearzerovar.numeric
 ```
 
 
+
 ```{r}
 pnwsoils.corr.values.low.corr <- pnwsoils.corr.values %>% filter(cor< 0.1 & cor> -0.1)
 pnwsoils.corr.values.high.corr <- pnwsoils.corr.values %>% filter(cor> 0.9 | cor< -0.9)

@@ -225,6 +225,35 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.can
 
 ***
 
+##### CMI_sp
+
+###### Symptoms
+
+```{r}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Site Severity
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot()+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+###### Size Class
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.optional...tree.size,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(fill="Unhealthy Trees")+labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+facet_wrap(~field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+```{r include=FALSE}
+ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +facet_wrap(~field.optional...tree.size) +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+
 
 ### TOPO Data {.tabset .tabset-pills}
 #### Aspect
@@ -313,7 +342,8 @@ ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_slopegradwta,fi
 ggplot(filtered.symptoms,aes(field.tree.canopy.symptoms,muaggatt_niccdcdpct,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(x="Symptoms")
 ```
 
-***
+
+
 
 ## Binary Data {.tabset .tabset-pills}
 
@@ -388,6 +418,12 @@ ggplot(binary,aes(field.tree.canopy.symptoms,CMD,fill=field.tree.canopy.symptoms
 
 ```{r}
 ggplot(binary,aes(field.tree.canopy.symptoms,Eref,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
+```
+
+#### CMI_sp
+
+```{r}
+ggplot(binary,aes(field.tree.canopy.symptoms,CMI_sp,fill=field.tree.canopy.symptoms))+geom_boxplot(show.legend=FALSE)+coord_flip()+theme_bw() +labs(title="Decade 2011-2020",x="Symptoms")
 ```
 
 ### Topo

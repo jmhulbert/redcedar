@@ -60,6 +60,7 @@ There were many time series groupings (different intervals where data were avera
 
 * Grouping explored
   + data averaged over 30 year normals (1991-2020)
+    + need to check this is actually the time period - I am not sure PRISM had released the latest normals until late 2021.
   + data averaged over last decade (2011-2020)
 
 ```{r}

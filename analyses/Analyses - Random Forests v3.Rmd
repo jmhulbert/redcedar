@@ -82,14 +82,18 @@ All of the data used in the below analyses are described in the [Data Wrangle fo
     + check whether valu1 data are available in gssurgo data in addition to muaggat and component
 
 
-### Notes from meeting with MC
+### Notes from meeting with MC 
   * Next steps
-    + Correlation model between all variables - variables will be highly correlated 
+    + Correlation model between all variables - variables will be highly correlated
+      + how does the model perform differently when some of the variables are excluded
+      + if the model does fairly well with less variables, removing them is easily justified
     + Pick top ten that are uncorrelated
       + knock out some of the variables, keep the uncorrelated variables
       + Then see how model preforms
-    + explore validatoin tools built into randomforests that could be used instead of subsetting the data
-    + if you're not predicting into the future, than we may not need to split the dataset
+        + compare OOB, commission errors, ommission errors
+        + set up some model without highly correlated r values
+    + explore validation tools built into randomforests that could be used instead of subsetting the data
+      + if you're not predicting into the future, than we may not need to split the dataset
   
   * Create a map (WA and OR)
     + Soil Great Groups
@@ -99,12 +103,9 @@ All of the data used in the below analyses are described in the [Data Wrangle fo
         + Create DEM in ArcGIS?
       + Upload DEM in ClimateNA tool (see https://www.youtube.com/watch?v=9IkcmnzlNqg&feature=youtu.be)
       
-
-
-
 ### Data
 
-The data used in the below visualizations are described in the [Data Wrangle folder](./data-wrangle). 
+The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
 
 ```{r}
 data <- read.csv("./data/observations-9.19.21.csv")
@@ -178,6 +179,8 @@ combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
 
 
 #### Filter Data
+
+##### Overall Filter
 
 Filter trees to only those with soils data (Oregon and Washington)
 
@@ -310,7 +313,17 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
+
+##### Filtered out months 
+
+```{r}
+combo.filtered.nearzerovar.monthless <- combo.filtered.nearzerovar[-c(8:153,331:475)]
+```
+
+
 #### Impute data
+
+##### Overall Imputed data
 
 We continue to get the below error, but were able to work around it by imputing the data. 
 
@@ -345,7 +358,20 @@ Imputed data table
 ```{r}
 data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
 ```
-### Model
+
+##### Filtered out months imputed data
+
+```{r}
+less.fifty.three <- combo.filtered.nearzerovar.monthless %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
+```
+
+```{r}
+data.imputed.monthless <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
+```
+
+### Models
+
+#### Full Model
 
 ```{r}
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=data.imputed, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
@@ -404,6 +430,118 @@ importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
 
+#### Monthless model
 
-Important variables 
+```{r}
+rfm <- randomForest(field.tree.canopy.symptoms ~ ., data=data.imputed.monthless, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
+
+```{r}
+rfm
+```
+
+> Note the 'out of bag' error rate of 38.5%
+
+
+```{r}
+plot(rfm)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rfm$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=data.imputed$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +  
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
+  theme_bw() + 
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+
+#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
+
+#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
+```
+
+```{r fig.height=9,fig.width=12}
+varImpPlot(rfm)
+```
+
+```{r}
+importance <- varImp(rfm,scale=TRUE)
+plot(importance)
+```
+
+#### Intrepretation
+
+These outputs help us evaluate the usefulness of a split 
+
+Mean Decrease Accuracy - how much the model fit decreases when you drop a variable
+Mean Decrease GINI - 
+
+
+### Discussion
+
+
+
+
+#### Important Variables
+##### Parameters evaluated in Case and Lawler 2017
+
+CHILL 
+FROST 
+GDD0 
+GDD5 
+MAT 
+MI_ANN
+MI_DECIDOUS
+MI_DJF
+MI_EVERGREEN
+MI_JJA
+MI_MAM
+MI_SON
+MTCO
+MTWA
+PET_ANN
+PET_DECIDOUS
+PET_DJF
+PET_EVERGREEN
+PET_JJA
+PET_MAM
+PET_SON
+PRANGE
+PREC_ANN
+PREC_ANN_MEA N
+PREC_DJF
+PREC_DRY 
+PREC_JJA 
+PREC_MAM 
+PREC_MJJAS 
+PREC_SON 
+PREC_WET 
+SWE_ANN 
+TMP_DJF 
+TMP_MAM 
+TMP_SON 
+TRANGE
+
+Authors concluded PREC_SON was most important predictor variable followed by GDD5
+
 
