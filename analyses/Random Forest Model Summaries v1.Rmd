@@ -39,6 +39,15 @@ The purpose of this markdown document is to list the steps we followed for refin
         + interesting to explore health characteristics and the variables that distinguish where they're located on landscape
         + compare thinning, dead top, healthy
 
+
+* Notes from writing paper (4.7.2022)
+  + How should we explain the steps toward selecting a model. 
+    + Two primary analyses
+        + Climate data only with entire dataset
+        + climate and soils data with dataset limited to Oregon and Washington
+    + Both analyses followed some intiial exploration to simplify the number of groupings of environmental data. 
+
+
 # Data
 
 ## Response variables
@@ -61,6 +70,10 @@ Below we compare models using canopy symptoms as the response variable
     + gSSURGGO
       + muggaggat
       + component
+      
+> Lets add summaries for how many variables each of these datasets provided
+
+
 
 Note there may be a third soils dataset to incorporate. Also, need to confirm the normals data is actually the latest normal data. 
 
