@@ -1,0 +1,81 @@
+---
+title: "Climate Data Extraction"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/pnwbi/ServerFiles/redcedar")
+#knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+
+## Purpose
+
+The purpose of this markdown document is to detail the methods used to extract climate data for iNat Observations (yes.. windows).
+
+## Data
+
+The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
+
+```{r}
+data <- read.csv("./data/observations-223649.csv")
+```
+
+
+## Ancillary Climate Data
+
+Climate data then extracted with ClimateNA tool following the below process. Data were downloaded for the iNat GPS locations using the ClimateNA Tool.
+
+ClimateNA version 7.21 - The latest version also supports command line access using system2(exe,"") commands, but you likely need to be running r in windows.
+
+* Climate data extraction process with ClimateNA
+  + Convert data into format for climateNA use (see below)
+  + In ClimateNA
+    + Normal Data
+      + Select input file (browse to gps1500 file)
+      + Choose 'More Normal Data'
+        + Select 'Normal_1991_2020.nrm'
+      + Choose 'All variables(265)'
+      + Specify output file
+    + Decadal Data
+      + Select input file (browse to gps1500 file)
+      + Choose 'Decadal Data'
+        + Select 'Decade_2011_2020.dcd'
+      + Choose 'All variables(265)'
+      + Specify output file
+
+### Wrangle data into format for climateNA
+
+```{r}
+gps <- data[c(1,22,23)] #subset data to only include id and gps coordinates
+gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
+#write.csv(gps,file="./data/gps1500.csv") #named 1500 because data was downloaded after having 1500 observations
+```
+
+
+There were many time series groupings (different intervals where data were averaged) of the downscaled climate variables available. 
+
+* Grouping explored
+  + data averaged over 30 year normals (1991-2020)
+    + need to check this is actually the time period - I am not sure PRISM had released the latest normals until late 2021.
+  + data averaged over last decade (2011-2020)
+
+### Check data
+
+```{r}
+normals <- read.csv("./data/gps1500_Normal_1991_2020MSY.csv")
+colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
+normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+str(normals)
+```
+
+```{r}
+lastdecade <- read.csv("./data/gps1500_Decade_2011_2020MSY.csv")
+lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+str(lastdecade)
+```

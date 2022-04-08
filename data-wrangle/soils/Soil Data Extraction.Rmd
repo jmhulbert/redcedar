@@ -28,7 +28,7 @@ Below are the methods I used to extract the soils data for the GPS points.
   * Download gSSURGO data from the [USDA Geospatial Data Gateway](https://gdg.sc.egov.usda.gov/GDGHome_DirectDownLoad.aspx)
     + click on the link to 'Soils' - Redirects you to a the [NRCS Box Folder](https://nrcs.app.box.com/v/soils)
     + I downloaded OR and WA data from the folder 'October 2021 gSSURGO by State'.
-    + Working with gSSURGO data is kind of akward because you have to join tables of interest to the base raster file before you can map those table variables.
+    + Working with gSSURGO data is kind of ackward because you have to join tables of interest to the base raster file before you can map those table variables.
   
   
 ## Wrangle Shapefiles in ArcGIS Pro  
