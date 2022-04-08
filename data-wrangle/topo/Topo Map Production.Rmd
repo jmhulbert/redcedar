@@ -1,0 +1,55 @@
+---
+title: "Topo Maps"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Purpose
+
+The purpose of this markdown document is to detail the methods used to produce maps using ArcGIS (yes.. windows).
+
+Note there may be a method to convert to ASC with qgis, but you probably still need to use windows for ClimateNA tool ASC function currently. 
+
+## Data
+
+DEM Data were downloaded from https://apps.nationalmap.gov/downloader/#/
+
+* Methods
+  + Browse to https://apps.nationalmap.gov/downloader/#/
+  + Drag Map Extent to area of interest
+  + Check 1 arc-second DEM - current (NOTE it may work better if you can find 3 arc-second or something lower resolution)
+  + Click Search Products
+  + Add Products to Cart (Products Tab)
+  + Right Click the 'Other Format (TIF)' link and save as (Cart Tab)
+  
+
+## Convert Data to ASC
+
+The CliamteNA tool requires spatial data in ASC format.
+
+* Methods
+  + Drag and Drop DEM Rasters (TIF) into ArcGIS Project
+  + Find Geoprocessing toolbox
+    + Conversion Tools
+      + From Raster
+        + Raster to ASCII
+          + Be sure to select ASCII as 'save as file type' in output
+          
+## Map In - Map Out
+
+We generally followed the steps here: https://www.youtube.com/watch?v=9IkcmnzlNqg
+  
+* Methods (v7.10)
+  + Use Multi-location section (bottom of ClimateNA tool)
+    + Choose Timeseries
+      + Future Normal Periods, try 1-2 GCMs first
+    + Choose Variables
+      + Seasonal Variables - most interested in spring CMI currently
+    + Select input file (ASC)
+    + Select Output folder (it might create a subfolder for you)
+    + Start TS - Very slow for 1 arc second, we need to parameterize better
+    
+    
