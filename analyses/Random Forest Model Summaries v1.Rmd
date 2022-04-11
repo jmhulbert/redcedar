@@ -388,7 +388,6 @@ normal.monthless.binary <- binary[-c(8:230,331:475)]
 ```{r}
 set.seed(71)
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
-?randomForest
 ```
 
 ```{r}

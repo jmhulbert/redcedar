@@ -7,6 +7,15 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(randomForest)
+library(caret)
+library(rpart)
+library(knitr)
 ```
 
 # Purpose
@@ -24,5 +33,80 @@ Can I download annual CMI values for all points historically?
   + Download spring CMI values for points since 1916 (historical Time series)
   + Plot CMI values for healthy and unhealthy trees
     
-  
+    
+```{r}
+data <- read.csv("./data/observations-223649.csv")
+```
 
+```{r}
+climatehistory <- read.csv("./data/gps1500_1901-2020SY.csv")
+climatehistory <- rename(climatehistory, id = ID2)
+```
+
+```{r}
+combo <- left_join(data,climatehistory,by="id")
+```
+
+```{r}
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo <- combo %>% droplevels()
+combo$field.tree.canopy.symptoms <- as.factor(combo$field.tree.canopy.symptoms)
+#levels(combo$field.tree.canopy.symptoms)
+```
+
+```{r}
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo <- combo %>% droplevels()
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo <- combo %>% droplevels()
+combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
+#levels(combo$field.optional...tree.size)
+```
+
+## Group response variables to binary values
+
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- combo
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+binary <- binary %>% filter(field.tree.canopy.symptoms!="Candelabra top or very old spike top (old growth)") %>% droplevels()
+binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
+```
+
+Binary tree health categories
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+```{r fig.height=7, fig.width=11}
+binary <- binary %>% filter(CMI!="-9999")
+ggplot(binary,aes(Year,CMI,color=field.tree.canopy.symptoms)) +geom_jitter(alpha=0.1) +geom_smooth(method=lm) +theme_bw() + scale_color_manual(values=c("#7fcdbb","#fe9929"),name="Tree Condition")
+```
+
+```{r fig.height=7, fig.width=11}
+binary <- binary %>% filter(CMI!="-9999")
+ggplot(binary,aes(Year,CMI,color=field.tree.canopy.symptoms)) +geom_smooth(method=lm) +theme_bw() + scale_color_manual(values=c("#7fcdbb","#fe9929"),name="Tree Condition")
+```
+
+
+```{r fig.height=7, fig.width=11}
+combo.filtered <- combo %>% filter(CMI!="-9999")
+ggplot(combo.filtered,aes(Year,CMI,color=field.tree.canopy.symptoms)) +geom_smooth(method=lm) +theme_bw()
+```
