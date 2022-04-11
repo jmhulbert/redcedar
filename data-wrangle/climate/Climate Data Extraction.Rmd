@@ -29,6 +29,8 @@ data <- read.csv("./data/observations-223649.csv")
 
 ## Ancillary Climate Data
 
+### Normal and Decadal Data
+
 Climate data then extracted with ClimateNA tool following the below process. Data were downloaded for the iNat GPS locations using the ClimateNA Tool.
 
 ClimateNA version 7.21 - The latest version also supports command line access using system2(exe,"") commands, but you likely need to be running r in windows.
@@ -71,11 +73,24 @@ There were many time series groupings (different intervals where data were avera
 normals <- read.csv("./data/gps1500_Normal_1991_2020MSY.csv")
 colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
 normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-str(normals)
 ```
 
 ```{r}
 lastdecade <- read.csv("./data/gps1500_Decade_2011_2020MSY.csv")
 lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-str(lastdecade)
 ```
+
+
+### Historical Time Series
+
+Climate NA also allows you to download annual and seasonal data for multiple locations from 1901-2020. 
+
+* Process
+  + Select input file (browse to gps1500 file)
+  + Select 'Historical Time Series'
+  + Select 'Annual and Seasonal variables'
+  + Specify start year (1901)
+  + Specify end year (2020)
+  + Click Start TS
+
+> Note final product for 1510 points was 68MB! 
