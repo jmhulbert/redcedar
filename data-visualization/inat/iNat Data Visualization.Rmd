@@ -1,0 +1,116 @@
+---
+title: "iNat Data Visualization"
+author: "Joey Hulbert"
+date: "4/9/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+# Purpose
+
+The purpose of this markdown document is to list the steps completed for analysis of the iNaturalist data. 
+
+# Data
+
+The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+data <- read.csv("./data/observations-223649.csv")
+```
+
+```{r}
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+data <- data %>% droplevels()
+data$field.tree.canopy.symptoms <- as.factor(data$field.tree.canopy.symptoms)
+#levels(data$field.tree.canopy.symptoms)
+```
+
+```{r}
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+data <- data %>% droplevels()
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+data$field.optional...tree.size[data$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+data <- data %>% droplevels()
+data$field.optional...tree.size <- as.factor(data$field.optional...tree.size)
+#levels(data$field.optional...tree.size)
+```
+
+
+```{r}
+names
+```
+
+## Count data
+
+```{r}
+ggplot(data, aes(place_state_name))+geom_bar()+coord_flip()+theme_bw() 
+```
+
+
+```{r}
+ggplot(data, aes(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.))+geom_bar()+coord_flip()+theme_bw() 
+```
+
+
+```{r}
+ggplot(data, aes(field.optional...did.the.tree.have.heat.damage))+geom_bar()+coord_flip()+theme_bw() 
+```
+
+```{r}
+ggplot(data, aes(field.optional...timing.of.symptoms.estimate))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...slope.position))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...site.hydrology))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...site.area.disturbance.level))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...site.type))+geom_bar()+coord_flip()+theme_bw() 
+```
+
+```{r}
+ggplot(data, aes(field.optional...site.location.description))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...access.to.water))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.optional...tree.size))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+ggplot(data, aes(field.tree.canopy.symptoms))+geom_bar()+coord_flip() +theme_bw()
+```
+

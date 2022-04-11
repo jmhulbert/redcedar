@@ -1,0 +1,30 @@
+---
+title: "iNat Data Analysis"
+author: "Joey Hulbert"
+date: "4/9/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+# Purpose
+
+The purpose of this markdown document is to list the steps completed for analysis of the iNaturalist data. 
+
+# Data
+
+The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+data <- read.csv("./data/observations-223649.csv")
+```
+
+

@@ -1,0 +1,28 @@
+---
+title: "Historical CMI Analysis"
+author: "Joey Hulbert"
+date: "4/9/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Purpose
+
+The purpose of this markdown document is to explore whether CMI is changing.
+
+Given the importance of spring CMI as a predictor of redcedar tree health, is CMI changing.
+
+
+# Questions
+
+Can I download annual CMI values for all points historically? 
+
+* Process 
+  + Download spring CMI values for points since 1916 (historical Time series)
+  + Plot CMI values for healthy and unhealthy trees
+    
+  
+

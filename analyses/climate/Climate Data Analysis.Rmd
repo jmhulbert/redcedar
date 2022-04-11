@@ -112,7 +112,7 @@ There are multiple methods to group the response variables deepening on desired 
     + We can also group trees with 'old dead tops' and 'new dead tops' into a 'dead top' category
   + Binary (healthy/unhealthy)
 
-For now, we can move forward with the binary response grouping because it is the broadest and easiest for the model to classify with. 
+For now, we can move forward with the binary response grouping because it is the broadest and presumably the easiest for the model to classify with. 
 
 
 All tree health categories
@@ -130,13 +130,17 @@ We also need to remove other response variables like "field.percent.canopy.affec
 There are also a number of factors that should probably be removed because they may be biasing the data. For example, only trees with the 'other factor' question may only be answered for unhealthy trees. We need to think about this a bit more. 
 
 ```{r}
-combo.filtered <- combo %>% select(-c("field.optional...did.the.tree.have.heat.damage"
+combo.filtered <- combo %>% select(-c("field.optional...site.type",
+                                      "field.optional...site.hydrology",
+                                      "field.optional...site.location.description",
+                                      "field.optional...site.area.disturbance.level",
+                                      "field.optional...tree.size",
+  "field.optional...slope.position",
+  "field.optional...did.the.tree.have.heat.damage",
 ,"field.percent.canopy.affected...."
 ,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
 ,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
-,"muaggatt_mukey"
-,"component_mukey"
-,"component_cokey"
+,"field.optional...access.to.water"
 ,"id"  
 ,"observed_on_string"                                                                     
 ,"observed_on"                                                                            
@@ -187,23 +191,6 @@ combo.filtered <- combo %>% select(-c("field.optional...did.the.tree.have.heat.d
  ,"field.optional...timing.of.symptoms.estimate"                                           
 , "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
 , "field.optional...can.we.follow.up.with.you."
-,"field_1.x"                                                                              
-, "lat.x"                                                                                  
-,"long.x"                                                                                 
-, "el.x"      
-, "OID_"                                                                                   
-, "field_1.y"                                                                              
-, "lat.y"                                                                                  
-, "long.y"                                                                                 
-, "el.y"                                                                                   
-, "Aspect.y"                                                                               
-, "Profilecurv.y"                                                                          
-, "Tangentialc.y"                                                                          
-, "Slope.y"                                                                                
-, "PNWSRTMDEM.y"                                                                           
-, "RASTERVALU"                                                                             
-, "VAT_MapunitRaster_10m_Count"                                                            
-, "VAT_MapunitRaster_10m_MUKEY"
 ,"X" 
 ,"Latitude"                                    
 ,"Longitude"
@@ -228,54 +215,16 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
-## Impute data
-
-#### Impute data
-
-##### Overall Imputed data
-
-We continue to get the below error, but were able to work around it by imputing the data. 
-
-> Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
-
-To impute the data we have to remove factors with >53 levels. 
-
-The below code lists the number of levels for the variables that are factors. 
-
-```{r echo=TRUE, include=FALSE}
-for (n in names(combo.filtered.nearzerovar))
-  if (is.factor(combo.filtered.nearzerovar[[n]])) {
-    print(n)
-    print(length(levels(combo.filtered.nearzerovar[[n]])))
-  }
-```
-
-* The following factors had more than 53 levels
-  + "muaggatt_musym" 
-  + "muaggatt_muname"
-  + "component_compname"
-  + "component_geomdesc"
-  + "component_taxclname"
-  + "component_taxsubgrp"
-
-```{r}
-less.fifty.three <- combo.filtered.nearzerovar %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
-```
-
-Imputed data table
-
-```{r}
-data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
-```
 
 ## Group response variables to binary values
 
 ```{r}
 level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
 
-binary <- data.imputed
+binary <- combo.filtered.nearzerovar
 binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
 #levels(binary$field.tree.canopy.symptoms)
+binary <- binary %>% filter(field.tree.canopy.symptoms!="Candelabra top or very old spike top (old growth)") %>% droplevels()
 binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
 ```
 
@@ -309,23 +258,25 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 
 ## Comparing full and reduced datasets of explanatory variables  
 
+### Symtpom response variable
+
  * Datasets compared below
     + Full model = all climate variables retained. 
     + Monthless model = filtered out the climate parameters for individual months
     + Normal only, monthless model = removed decadal data
 
 ```{r}
-monthless.binary <- binary[-c(8:153,331:475)]
+monthless.binary <- binary[-c(9:155,232:378)]
 ```
 
 ```{r}
-normal.monthless.binary <- binary[-c(8:230,331:475)]
+normal.monthless.binary <- binary[-c(9:378)]
 ```
 
 
-### Full Model
+#### Full Model
 
-```{r}
+```{r full rf model}
 set.seed(71)
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ```
@@ -359,8 +310,10 @@ mds.data <- data.frame(Sample=rownames(mds.values),
 
 ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
   geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
   theme_bw() + 
+  scale_color_manual(values=c("#7fcdbb","#fe9929")) +
+  scale_fill_manual(values=c("#7fcdbb","#fe9929")) +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
   ggtitle("MDS plot using (1 - Random Forest Proximities)")
@@ -379,9 +332,9 @@ importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
 
-### Monthless Model
+#### Monthless Model
 
-```{r}
+```{r monthless rf model}
 set.seed(71)
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=monthless.binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ?randomForest
@@ -416,8 +369,10 @@ mds.data <- data.frame(Sample=rownames(mds.values),
 
 ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
   geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
   theme_bw() + 
+  scale_color_manual(values=c("#7fcdbb","#fe9929")) +
+  scale_fill_manual(values=c("#7fcdbb","#fe9929")) +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
   ggtitle("MDS plot using (1 - Random Forest Proximities)")
@@ -436,10 +391,10 @@ importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
 
-### Normal, Monthless Model
+#### Normal, Monthless Model
 
 
-```{r}
+```{r normal monthless model}
 set.seed(71)
 rf <- randomForest(field.tree.canopy.symptoms ~ ., data=normal.monthless.binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ?randomForest
@@ -474,8 +429,10 @@ mds.data <- data.frame(Sample=rownames(mds.values),
 
 ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
   geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
   theme_bw() + 
+  scale_color_manual(values=c("#7fcdbb","#fe9929")) +
+  scale_fill_manual(values=c("#7fcdbb","#fe9929")) +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
   ggtitle("MDS plot using (1 - Random Forest Proximities)")
@@ -494,3 +451,276 @@ importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
 
+
+### Number of unhealthy trees response variable
+
+```{r}
+combo.filtered <- combo %>% select(-c("field.optional...site.type",
+                                      "field.optional...site.hydrology",
+                                      "field.optional...site.location.description",
+                                      "field.optional...site.area.disturbance.level",
+                                      "field.optional...tree.size",
+  "field.optional...slope.position",
+  "field.optional...did.the.tree.have.heat.damage",
+  "field.tree.canopy.symptoms",
+,"field.percent.canopy.affected...."
+,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
+,"field.optional...access.to.water"
+,"id"  
+,"observed_on_string"                                                                     
+,"observed_on"                                                                            
+,"time_observed_at"                                                                       
+,"time_zone"                                                                              
+,"user_id"                                                                                
+,"user_login"                                                                             
+,"created_at"                                                                             
+,"updated_at"
+,"quality_grade"                                                                          
+,"license"                                                                                
+,"url"                                                                                    
+,"image_url"                                                                              
+,"sound_url"                                                                              
+,"tag_list"                                                                               
+,"description"                                                                            
+,"num_identification_agreements"                                                          
+,"num_identification_disagreements"                                                       
+,"captive_cultivated"                                                                     
+,"oauth_application_id"                                                                   
+,"place_guess"                                                                            
+,"latitude"                                                                               
+,"longitude"                                                                              
+,"positional_accuracy"                                                                    
+,"private_place_guess"                                                                    
+,"private_latitude"                                                                       
+,"private_longitude"                                                                      
+,"public_positional_accuracy"                                                             
+,"geoprivacy"                                                                             
+,"taxon_geoprivacy"                                                                       
+,"coordinates_obscured"                                                                   
+,"positioning_method"                                                                     
+,"positioning_device"                                                                     
+,"place_town_name"                                                                        
+,"place_county_name"                                                                      
+,"place_state_name"                                                                       
+,"place_country_name"                                                                     
+,"place_admin1_name"                                                                      
+,"place_admin2_name"                                                                      
+,"species_guess"                                                                          
+,"scientific_name"
+,"common_name"                                                                            
+,"iconic_taxon_name"                                                                      
+,"taxon_id"          
+,"field.other.factors...are.there.signs.or.symptoms.of.insect..diseases..or.other.damage."
+,"field.optional...what..other.factors..were.observed." 
+, "field.optional...were.there.any.other.unhealthy.plant.species.on.the.site."             
+ ,"field.optional...timing.of.symptoms.estimate"                                           
+, "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
+, "field.optional...can.we.follow.up.with.you."
+,"X" 
+,"Latitude"                                    
+,"Longitude"
+,"field.notes"
+,"norm_X"                                                                                   
+,"norm_Latitude"                                                                            
+,"norm_Longitude"                                                                           
+,"norm_Elevation"
+))
+# combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
+```
+
+Remove variables with variables that have near zero standard deviations (entire column is same value)
+
+```{r include=FALSE}
+#nearZeroVar(combo.filtered)
+combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
+#write.csv(combo.decade.filtered,file="./data/troubleshoot.csv")
+```
+
+```{r}
+combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
+```
+
+```{r}
+monthless.combo.filtered.nearzerovar <- combo.filtered.nearzerovar[-c(9:155,232:378)]
+```
+
+```{r}
+normal.monthless.combo.filtered.nearzerovar <- combo.filtered.nearzerovar[-c(9:378)]
+```
+
+#### Full Model
+
+```{r number trees full rf model}
+set.seed(71)
+rf <- randomForest(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. ~ ., data=combo.filtered.nearzerovar, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+```
+
+```{r}
+rf
+```
+
+```{r}
+plot(rf)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=combo.filtered.nearzerovar$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +  
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
+  theme_bw() + 
+  scale_color_discrete() +
+  scale_fill_discrete() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+
+#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
+
+#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
+```
+
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
+```
+
+```{r}
+importance <- varImp(rf,scale=TRUE)
+plot(importance)
+```
+
+#### Monthless Model
+
+```{r number trees monthless rf model}
+set.seed(71)
+rf <- randomForest(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. ~ ., data=monthless.combo.filtered.nearzerovar , ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+?randomForest
+```
+
+```{r}
+rf
+```
+
+```{r}
+plot(rf)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=monthless.combo.filtered.nearzerovar$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +  
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
+  theme_bw() + 
+  scale_color_discrete() +
+  scale_fill_discrete() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+
+#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
+
+#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
+```
+
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
+```
+
+```{r}
+importance <- varImp(rf,scale=TRUE)
+plot(importance)
+```
+
+#### Normal, Monthless Model
+
+
+```{r number trees normal monthless model}
+set.seed(71)
+rf <- randomForest(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. ~ ., data=normal.monthless.combo.filtered.nearzerovar, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+?randomForest
+```
+
+```{r}
+rf
+```
+
+```{r}
+plot(rf)
+```
+
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=normal.monthless.combo.filtered.nearzerovar$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +  
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
+  theme_bw() + 
+  scale_color_discrete() +
+  scale_fill_discrete() +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+
+#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
+
+#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
+```
+
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
+```
+
+```{r}
+importance <- varImp(rf,scale=TRUE)
+plot(importance)
+```
