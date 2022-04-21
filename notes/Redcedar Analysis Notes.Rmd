@@ -1,0 +1,39 @@
+---
+title: "Redcedar Analysis Notes"
+author: "Joey Hulbert"
+date: "4/10/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Purpose
+The purpose of this markdown document is to kepe a central space to record notes during analyses. 
+
+
+# General Notes
+
+* Notes 4.10.22
+  + I am noticing the elevation doesn't get added with climate data, maybe I need to add the eleveation before extracting climate data for more accurate climate values ?
+  
+  
+  
+# Response variables
+
+
+* Response variables to consider
+  + Number of unhealthy trees
+  + Tree canopy symptoms
+
+
+
+# Explanatory variables
+
+* Explanatory variables included
+  + iNat data
+    + explanatory variables such as tree size
+  + Climate data
+    + 30yr normals 1991-2020 (265 variables)
+    + last decade  2011-2020 (265 variables)

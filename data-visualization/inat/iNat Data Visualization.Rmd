@@ -18,8 +18,10 @@ The purpose of this markdown document is to list the steps completed for analysi
 
 The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
 
-```{r}
+```{r include=FALSE}
 library(tidyverse)
+library(knitr)
+library(kableExtra)
 ```
 
 
@@ -28,39 +30,78 @@ data <- read.csv("./data/observations-223649.csv")
 ```
 
 ```{r}
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-data <- data %>% droplevels()
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+data$field.optional...what..other.factors..were.observed. <- as.factor(data$field.optional...what..other.factors..were.observed.)
 data$field.tree.canopy.symptoms <- as.factor(data$field.tree.canopy.symptoms)
-#levels(data$field.tree.canopy.symptoms)
+data$field.optional...slope.position <- as.factor(data$field.optional...slope.position)
+data$field.optional...site.type <- as.factor(data$field.optional...site.type)
+data$field.optional...site.location.description  <- as.factor(data$field.optional...site.location.description )
+data$field.optional...tree.size <-as.factor(data$field.optional...tree.size)
 ```
 
 ```{r}
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-data <- data %>% droplevels()
-data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-#levels(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
 ```{r}
-data$field.optional...tree.size[data$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-data$field.optional...tree.size[data$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-data$field.optional...tree.size[data$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-data$field.optional...tree.size[data$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-data <- data %>% droplevels()
-data$field.optional...tree.size <- as.factor(data$field.optional...tree.size)
-#levels(data$field.optional...tree.size)
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+```
+
+```{r}
+data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Fungal Activitiy (mycelial fans, mushrooms at base, or conks on trunk)"] <-"Fungal Activitiy (mycelial fans, bleeding cankers, mushrooms at base, or conks on trunk)"
+data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Needle disease (dieback, checking, blight, etc.)"] <- "Needle or leaf disease (dieback, checking, blight, etc.)"
+```
+
+```{r}
+data$field.optional...slope.position[data$field.optional...slope.position=="Upper 1/3rd of a slope"] <-"Top of slope"
+```
+
+```{r}
+data$field.optional...site.type[data$field.optional...site.type=="Urban Natural"] <-"Urban"
+data$field.optional...site.type[data$field.optional...site.type=="Urban Landscaped"] <-"Urban"
+data$field.optional...site.type[data$field.optional...site.type=="Suburban Natural"] <-"Suburban"
+data$field.optional...site.type[data$field.optional...site.type=="Suburban Lanscaped"] <-"Suburban"
+data$field.optional...site.type[data$field.optional...site.type=="Natural Forest"] <-"Rural"
+```
+
+```{r}
+data$field.optional...tree.size[data$field.optional...tree.size=="Large"] <- "Large (too big to wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Medium"] <- "Medium (can wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Small"] <- "Small (can wrap hands around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+```
+
+```{r}
+data$field.optional...site.location.description [data$field.optional...site.location.description =="Yard or open park grounds"] <- "Urban yard or open park grounds"
 ```
 
 
 ```{r}
-names
+data <- data %>% droplevels()
 ```
+
+
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- data
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+binary <- binary %>% filter(field.tree.canopy.symptoms!="Candelabra top or very old spike top (old growth)") %>% droplevels()
+binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
+```
+
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
 
 ## Count data
 
@@ -111,6 +152,35 @@ ggplot(data, aes(field.optional...tree.size))+geom_bar()+coord_flip()+theme_bw()
 ```
 
 ```{r}
-ggplot(data, aes(field.tree.canopy.symptoms))+geom_bar()+coord_flip() +theme_bw()
+SymptomTable <- data %>% group_by(field.tree.canopy.symptoms) %>% summarize(n=n())
 ```
 
+
+```{r}
+kable(SymptomTable, align = 'c') %>% kable_styling(latex_options = "striped")
+```
+
+
+```{r}
+ggplot(SymptomTable, aes(field.tree.canopy.symptoms,n))+geom_col()+coord_flip() +theme_bw()+geom_text(aes(label=n),nudge_y=30)
+```
+
+
+
+```{r}
+ggplot(data, aes(field.other.factors...are.there.signs.or.symptoms.of.insect..diseases..or.other.damage.))+geom_bar()+coord_flip()+theme_bw()
+```
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms,field.other.factors...are.there.signs.or.symptoms.of.insect..diseases..or.other.damage.) %>% count()
+```
+
+
+```{r}
+other.factors.filtered <- binary %>% filter(field.optional...what..other.factors..were.observed.!="No selection"&field.optional...what..other.factors..were.observed.!="") %>% droplevels()
+```
+
+
+```{r}
+ggplot(other.factors.filtered,aes(field.optional...what..other.factors..were.observed.))+geom_bar()+coord_flip() +facet_wrap(~field.tree.canopy.symptoms) +theme_bw()
+```

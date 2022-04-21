@@ -1,7 +1,7 @@
 ---
-title: "Random Forest Model Summaries"
+title: "Soil Data Analysis"
 author: "Joey Hulbert"
-date: "2/18/2022"
+date: "4/18/2022"
 output: html_document
 ---
 
@@ -18,39 +18,18 @@ library(rpart)
 library(knitr)
 ```
 
+
 # Purpose
 
-The purpose of this markdown document is to list the steps we followed for refining the models.
-
-# Notes
-
-* Aspects to consider or check
-  + There may be another set of soil variables that would be valuable to include
-  + There may be an updated set of normals to work with
-
-* Notes from MC 2/18/22
-  + Steps
-    + 1 establish credibility
-      + establish approach is a robust technique and credible by sharing best model first
-        + First layout model - healthy and unhealthy - can see difference between healthy and unhealthy
-        + Able to say with certainty where healthy and unhealthy trees are located on landscape based on these variables
-    + 2 then explore other variables
-      + unpack model - increases uncertainty, but more interesting
-        + interesting to explore health characteristics and the variables that distinguish where they're located on landscape
-        + compare thinning, dead top, healthy
-
-
-* Notes from writing paper (4.7.2022)
-  + How should we explain the steps toward selecting a model. 
-    + Two primary analyses
-        + Climate data only with entire dataset
-        + climate and soils data with dataset limited to Oregon and Washington
-    + Both analyses followed some intiial exploration to simplify the number of groupings of environmental data. 
-
+The purpose of this markdown document is to list the steps we followed for refining the models using soils data only.
 
 # Data
 
+The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
+
 ## Response variables
+
+**Note the below analysis uses the iNat data with 1510 observations. Amazing!**
 
 * Response variables to consider
   + Number of unhealthy trees
@@ -63,59 +42,30 @@ Below we compare models using canopy symptoms as the response variable
 * Explanatory variables included
   + iNat data
     + explanatory variables such as tree size
-  + Climate data
-    + 30yr normals 1991-2020
-    + last decade  2011-2020
   + Soils data
-    + gSSURGGO
-      + muggaggat
-      + component
-      
-> Lets add summaries for how many variables each of these datasets provided
-
-
-
-Note there may be a third soils dataset to incorporate. Also, need to confirm the normals data is actually the latest normal data. 
-
-The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
-
+    + muggatt 
+    + component
+    
 ```{r}
-data <- read.csv("./data/observations-9.19.21.csv")
+data <- read.csv("./data/observations-223649.csv")
 ```
 
-```{r}
-gps <- data[c(1,22,23)]
-gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
-```
 
-```{r}
-normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
-colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
-normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
-
-```{r}
-lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
-lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
-
-```{r}
-topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
-topo <- rename(topo, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
-
-```{r}
-wasoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
-orsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
+> damn, extracted data do not have column titles...
+    
+    ```{r}
+wasoils <- read.csv("./data/WA_Soils_Data_Extract_1500.csv",header=TRUE)
+orsoils <- read.csv("./data/OR_Soils_Data_Extract_1500.csv",header=TRUE)
 wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+# orsoils$compone_71 <- as.integer(orsoils$compone_71) # not sure why, but the compone_71 factor was recognized as a characer rather than an integer in the oregon extract
 pnwsoils <- bind_rows(wasoils,orsoils)
 ```
 
 ```{r}
 #combo.normals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
 #combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id") 
-combo <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")  %>% left_join(.,normals,by="id") 
+combo <- left_join(data,pnwsoils,by="id")
 ```
 
 ```{r}
@@ -148,7 +98,6 @@ combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
 #levels(combo$field.optional...tree.size)
 ```
 
-
 # Data wrangling
 
 There are multiple methods to group the response variables deepening on desired resolution or fineness of the model. 
@@ -165,15 +114,8 @@ There are multiple methods to group the response variables deepening on desired 
     + We can also group trees with 'old dead tops' and 'new dead tops' into a 'dead top' category
   + Binary (healthy/unhealthy)
 
-For now, we can move forward with the binary response grouping because it is the broadest and easiest for the model to classify with. 
+For now, we can move forward with the binary response grouping because it is the broadest and presumably the easiest for the model to classify with. 
 
-## Filter Data
-
-Filter trees to only those with soils data (Oregon and Washington)
-
-```{r}
-combo <- combo %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
-```
 
 All tree health categories
 
@@ -189,14 +131,20 @@ We also need to remove other response variables like "field.percent.canopy.affec
 
 There are also a number of factors that should probably be removed because they may be biasing the data. For example, only trees with the 'other factor' question may only be answered for unhealthy trees. We need to think about this a bit more. 
 
+First remove iNat factors not useful as explanatory variables (e.g. observed_on)
+
 ```{r}
-combo.filtered <- combo %>% select(-c("field.optional...did.the.tree.have.heat.damage"
+combo.filtered <- combo %>% select(-c("field.optional...site.type",
+                                      "field.optional...site.hydrology",
+                                      "field.optional...site.location.description",
+                                      "field.optional...site.area.disturbance.level",
+                                      "field.optional...tree.size",
+  "field.optional...slope.position",
+  "field.optional...did.the.tree.have.heat.damage",
 ,"field.percent.canopy.affected...."
 ,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
 ,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
-,"muaggatt_mukey"
-,"component_mukey"
-,"component_cokey"
+,"field.optional...access.to.water"
 ,"id"  
 ,"observed_on_string"                                                                     
 ,"observed_on"                                                                            
@@ -247,34 +195,19 @@ combo.filtered <- combo %>% select(-c("field.optional...did.the.tree.have.heat.d
  ,"field.optional...timing.of.symptoms.estimate"                                           
 , "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
 , "field.optional...can.we.follow.up.with.you."
-,"field_1.x"                                                                              
-, "lat.x"                                                                                  
-,"long.x"                                                                                 
-, "el.x"      
-, "OID_"                                                                                   
-, "field_1.y"                                                                              
-, "lat.y"                                                                                  
-, "long.y"                                                                                 
-, "el.y"                                                                                   
-, "Aspect.y"                                                                               
-, "Profilecurv.y"                                                                          
-, "Tangentialc.y"                                                                          
-, "Slope.y"                                                                                
-, "PNWSRTMDEM.y"                                                                           
-, "RASTERVALU"                                                                             
-, "VAT_MapunitRaster_10m_Count"                                                            
-, "VAT_MapunitRaster_10m_MUKEY"
-,"X" 
-,"Latitude"                                    
-,"Longitude"
-,"field.notes"
-,"norm_X"                                                                                   
-,"norm_Latitude"                                                                            
-,"norm_Longitude"                                                                           
-,"norm_Elevation"
 ))
 # combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
 ```
+
+
+```{r}
+#Then, remove specific topo variables not useful as explanatory variables (e.g. MUKEY)
+#combo.filtered <- combo.filtered %>% select(-c(
+#, "RASTERVALU"                                                                             
+#, "VAT_MapunitRaster_10m_Count"                                                            
+#, "VAT_MapunitRaster_10m_MUKEY"))
+```
+
 
 Remove variables with variables that have near zero standard deviations (entire column is same value)
 
@@ -288,55 +221,16 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
-## Impute data
-
-#### Impute data
-
-##### Overall Imputed data
-
-We continue to get the below error, but were able to work around it by imputing the data. 
-
-> Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
-
-To impute the data we have to remove factors with >53 levels. 
-
-The below code lists the number of levels for the variables that are factors. 
-
-```{r echo=TRUE, include=FALSE}
-for (n in names(combo.filtered.nearzerovar))
-  if (is.factor(combo.filtered.nearzerovar[[n]])) {
-    print(n)
-    print(length(levels(combo.filtered.nearzerovar[[n]])))
-  }
-```
-
-* The following factors had more than 53 levels
-  + "muaggatt_musym" 
-  + "muaggatt_muname"
-  + "component_compname"
-  + "component_geomdesc"
-  + "component_taxclname"
-  + "component_taxsubgrp"
-
-```{r}
-less.fifty.three <- combo.filtered.nearzerovar %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
-```
-
-Imputed data table
-
-```{r}
-data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
-```
-
 
 ## Group response variables to binary values
 
 ```{r}
 level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
 
-binary <- data.imputed
+binary <- combo.filtered.nearzerovar
 binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
 #levels(binary$field.tree.canopy.symptoms)
+binary <- binary %>% filter(field.tree.canopy.symptoms!="Candelabra top or very old spike top (old growth)") %>% droplevels()
 binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
 ```
 
@@ -352,12 +246,7 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
   + build full model using binary response grouping variable
     + binary response 
   + refine model to remove redundant explanatory variables
-    
-* Approach notes
-  + We need to train/test models to calculate correctly predicted presences (inverse of commission errors) and correctly predicted absences (inverse of omission errors)
-  + we may want to evaluate the climate parameters seperately
-    + we lose >300 observations when we filter out data to only include those with soil
-    + what happens if we build a model without soils data (without filtering to WA and OR)
+  
 
 # Models
 
@@ -368,26 +257,58 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
   + ntree = 2001, importance = TRUE, proximity = TRUE, na.action = na.omit
   + seed was set for reproducability with: set.seed(71)
 
-## Comparing full and reduced datasets of explanatory variables  
 
- * Datasets compared below
-    + Full model = all climate variables retained. 
-    + Monthless model = filtered out the climate parameters for individual months
-    + Normal only, monthless model = removed decadal data
+## Impute data
 
-```{r}
-monthless.binary <- binary[-c(8:153,331:475)]
+#### Impute data
+
+##### Overall Imputed data
+
+We continue to get the below error, but were able to work around it by imputing the data. 
+
+> Error in randomForest.default(m, y, ...) : Need at least two classes to do classification.
+
+To impute the data we have to remove factors with >53 levels. For example, 'component_taxclnam' has 132 levels
+
+The below code lists the number of levels for the variables that are factors. 
+
+```{r echo=TRUE, include=FALSE}
+for (n in names(binary))
+  if (is.factor(binary[[n]])) {
+    print(n)
+    print(length(levels(binary[[n]])))
+  }
 ```
 
 ```{r}
-normal.monthless.binary <- binary[-c(8:230,331:475)]
+names(binary)
 ```
 
-### Full Model
+
+* The following factors had more than 53 levels
+  + "muaggatt_musym" 
+  + "muaggatt_muname"
+  + "component_compname"
+  + "component_geomdesc"
+  + "component_taxclname"
+  + "component_taxsubgrp"
 
 ```{r}
+less.fifty.three <- binary %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
+```
+
+Imputed data table
+
+```{r}
+data.imputed <- rfImpute(field.tree.canopy.symptoms ~ ., data= less.fifty.three, iter=6)
+```
+
+
+#### Full Model
+
+```{r full rf model}
 set.seed(71)
-rf <- randomForest(field.tree.canopy.symptoms ~ ., data=binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=data.imputed, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ```
 
 ```{r}
@@ -415,12 +336,12 @@ mds.values <- mds.stuff$points
 mds.data <- data.frame(Sample=rownames(mds.values),
   X=mds.values[,1],
   Y=mds.values[,2],
-  Status=binary$field.tree.canopy.symptoms)
+  Status=data.imputed$field.tree.canopy.symptoms)
 
 ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
   geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
-  theme_bw() +
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
+  theme_bw() + 
   scale_color_manual(values=c("#7fcdbb","#fe9929")) +
   scale_fill_manual(values=c("#7fcdbb","#fe9929")) +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
@@ -440,131 +361,3 @@ varImpPlot(rf)
 importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
-
-### Monthless Model
-
-```{r}
-set.seed(71)
-rf <- randomForest(field.tree.canopy.symptoms ~ ., data=monthless.binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
-?randomForest
-```
-
-```{r}
-rf
-```
-
-```{r}
-plot(rf)
-```
-
-```{r fig.height=6,fig.width=9}
-#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
-
-## Start by converting the proximity matrix into a distance matrix. 
-
-distance.matrix <- as.dist(1-rf$proximity)
-
-mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
-
-## calculate the percentage of variation that each MDS axis accounts for...
-mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
-
-## now make a fancy looking plot that shows the MDS axes and the variation:
-mds.values <- mds.stuff$points
-mds.data <- data.frame(Sample=rownames(mds.values),
-  X=mds.values[,1],
-  Y=mds.values[,2],
-  Status=monthless.binary$field.tree.canopy.symptoms)
-
-ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
-  geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
-  theme_bw() + 
-  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
-  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
-  ggtitle("MDS plot using (1 - Random Forest Proximities)")
-
-#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
-
-#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
-```
-
-```{r fig.height=9,fig.width=12}
-varImpPlot(rf)
-```
-
-```{r}
-importance <- varImp(rf,scale=TRUE)
-plot(importance)
-```
-
-### Normal, Monthless Model
-
-
-```{r}
-set.seed(71)
-rf <- randomForest(field.tree.canopy.symptoms ~ ., data=normal.monthless.binary, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
-?randomForest
-```
-
-```{r}
-rf
-```
-
-```{r}
-plot(rf)
-```
-
-```{r fig.height=6,fig.width=9}
-#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
-
-## Start by converting the proximity matrix into a distance matrix. 
-
-distance.matrix <- as.dist(1-rf$proximity)
-
-mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
-
-## calculate the percentage of variation that each MDS axis accounts for...
-mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
-
-## now make a fancy looking plot that shows the MDS axes and the variation:
-mds.values <- mds.stuff$points
-mds.data <- data.frame(Sample=rownames(mds.values),
-  X=mds.values[,1],
-  Y=mds.values[,2],
-  Status=normal.monthless.binary$field.tree.canopy.symptoms)
-
-ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
-  geom_text(aes(color=Status)) +  
-  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.35) +
-  theme_bw() + 
-  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
-  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
-  ggtitle("MDS plot using (1 - Random Forest Proximities)")
-
-#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
-
-#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
-```
-
-```{r fig.height=9,fig.width=12}
-varImpPlot(rf)
-```
-
-```{r}
-importance <- varImp(rf,scale=TRUE)
-plot(importance)
-```
-
-
-  
-## Comparing grouping variables
-
-
-
-
-
-
-
-
-
