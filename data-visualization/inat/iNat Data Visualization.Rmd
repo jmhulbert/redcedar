@@ -30,23 +30,60 @@ data <- read.csv("./data/observations-223649.csv")
 ```
 
 ```{r}
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-data <- data %>% droplevels()
+data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+data$field.optional...what..other.factors..were.observed. <- as.factor(data$field.optional...what..other.factors..were.observed.)
 data$field.tree.canopy.symptoms <- as.factor(data$field.tree.canopy.symptoms)
-#levels(data$field.tree.canopy.symptoms)
+data$field.optional...slope.position <- as.factor(data$field.optional...slope.position)
+data$field.optional...site.type <- as.factor(data$field.optional...site.type)
+data$field.optional...site.location.description  <- as.factor(data$field.optional...site.location.description )
+data$field.optional...tree.size <-as.factor(data$field.optional...tree.size)
 ```
 
 ```{r}
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
 data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+```
+
+```{r}
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+data$field.tree.canopy.symptoms[data$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+```
+
+```{r}
+data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Fungal Activitiy (mycelial fans, mushrooms at base, or conks on trunk)"] <-"Fungal Activitiy (mycelial fans, bleeding cankers, mushrooms at base, or conks on trunk)"
+data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Needle disease (dieback, checking, blight, etc.)"] <- "Needle or leaf disease (dieback, checking, blight, etc.)"
+```
+
+```{r}
+data$field.optional...slope.position[data$field.optional...slope.position=="Upper 1/3rd of a slope"] <-"Top of slope"
+```
+
+```{r}
+data$field.optional...site.type[data$field.optional...site.type=="Urban Natural"] <-"Urban"
+data$field.optional...site.type[data$field.optional...site.type=="Urban Landscaped"] <-"Urban"
+data$field.optional...site.type[data$field.optional...site.type=="Suburban Natural"] <-"Suburban"
+data$field.optional...site.type[data$field.optional...site.type=="Suburban Lanscaped"] <-"Suburban"
+data$field.optional...site.type[data$field.optional...site.type=="Natural Forest"] <-"Rural"
+```
+
+```{r}
+data$field.optional...tree.size[data$field.optional...tree.size=="Large"] <- "Large (too big to wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Medium"] <- "Medium (can wrap arms around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Small"] <- "Small (can wrap hands around trunk)"
+data$field.optional...tree.size[data$field.optional...tree.size=="Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+```
+
+```{r}
+data$field.optional...site.location.description [data$field.optional...site.location.description =="Yard or open park grounds"] <- "Urban yard or open park grounds"
+```
+
+
+```{r}
 data <- data %>% droplevels()
-data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-#levels(data$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
 ```
 
 
@@ -64,6 +101,7 @@ binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms
 ```{r}
 binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
+
 
 ## Count data
 
@@ -138,24 +176,11 @@ binary %>% group_by(field.tree.canopy.symptoms,field.other.factors...are.there.s
 ```
 
 
-
 ```{r}
-data$field.optional...what..other.factors..were.observed. <- as.factor(data$field.optional...what..other.factors..were.observed.)
-levels(data$field.optional...what..other.factors..were.observed.)
-```
-
-```{r}
-data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Fungal Activitiy (mycelial fans, mushrooms at base, or conks on trunk)"] <-"Fungal Activitiy (mycelial fans, bleeding cankers, mushrooms at base, or conks on trunk)"
-data$field.optional...what..other.factors..were.observed.[data$field.optional...what..other.factors..were.observed.=="Needle disease (dieback, checking, blight, etc.)"] <- "Needle or leaf disease (dieback, checking, blight, etc.)"
-
+other.factors.filtered <- binary %>% filter(field.optional...what..other.factors..were.observed.!="No selection"&field.optional...what..other.factors..were.observed.!="") %>% droplevels()
 ```
 
 
 ```{r}
-other.factors.filtered <- data %>% filter(field.optional...what..other.factors..were.observed.!="No selection"&field.optional...what..other.factors..were.observed.!="") %>% droplevels()
-```
-
-
-```{r}
-ggplot(other.factors.filtered,aes(field.optional...what..other.factors..were.observed.))+geom_bar()+coord_flip()+theme_bw()
+ggplot(other.factors.filtered,aes(field.optional...what..other.factors..were.observed.))+geom_bar()+coord_flip() +facet_wrap(~field.tree.canopy.symptoms) +theme_bw()
 ```
