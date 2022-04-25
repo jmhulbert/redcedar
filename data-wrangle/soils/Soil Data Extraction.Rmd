@@ -38,6 +38,10 @@ Working with gSSURGO data is kind of awkward because you have to join tables of 
 >>>>>>> 5f4526c2e8e642bb0d006fdfc0247a36efa9c7de
   
   
+### Warning
+
+Note, if you have trouble with having enough memory, check that gps points were subset per state first. 
+  
 ## Wrangle Shapefiles in ArcGIS Pro  
 
 ### Add Data Layers
@@ -60,12 +64,14 @@ Working with gSSURGO data is kind of awkward because you have to join tables of 
         + Rename polygon for each state (e.g. WA MUPolygon)
       + Use select by location for Tree GPS points (find tool in Map Tab of ArcGIS Pro)
         + Input features - gps.csv
-        + Relationship - Intersect
+        + Relationship - Intersectselect 
         + Selecting Features - WA MUPOLYGON
         + Selection type - New Selection
       + Save selected
         + Right click point layer -> Selection -> Make layer from selected features
         + Rename layer (e.g. Washington GPS Points)
+        
+> Note ArcGIS Pro was doing something ackward where it would re-add the Washington points to the OR shapefile and vice versa. One workaround was to export it as a csv immediately after adding selection as new layer, then displaying the XY data as described above. 
       
 ### Join Data     
     
@@ -105,6 +111,12 @@ Working with gSSURGO data is kind of awkward because you have to join tables of 
 > Note the column headers were not extracted correctly following this protocol! Shoot
 I am wondering if it is because we added muggatt and component data to the same raster, then extracted from that raster
 
+Apparently, .shp files can only have fields 10 characters long, so it was automatically truncating the field names. The [help](https://pro.arcgis.com/en/pro-app/latest/tool-reference/spatial-analyst/extract-values-to-points.htm) suggests extracting it as a geodatabase rather than a shapefile in this case: 
+
+"The shapefile format has a limitation on the maximum length of a field name of 10 characters. As a result, any fields that are appended to the attribute table of an output shapefile will have their names truncated and made unique by default. This may make it difficult to distinguish between the fields, particularly if the names are long or very similar. In this case, it is suggested to output to a file geodatabase instead."
+
+**Solution: do not extract new file into different folder than the geodatabase for the project you're working in.** If you just name the extract file and do not designate where it is saved, it should keep all of the fieldnames, then you can export it to CSV with fieldnames. It should work if you are saving the export inside the project geodatabase. 
+
           
 ### Export Data to table
         
@@ -112,7 +124,7 @@ I am wondering if it is because we added muggatt and component data to the same 
         + Right click layer created above (Extract_GPS_Washington) -> Data -> Export Table
           + Input rows - Extract_GPS_Washington 
           + browse to folder to save file (e.g. redcedar/serverfiles/data)
-          + be sure to add '.csv' to end of file name (e.g. Washington_GPS_Soils_Data_muaggatt_component.csv)
+          + be sure to add '.csv' to end of file name (e.g. Washington_GPS_Soils_Data.csv)
       
 ### Visualize Shape Files
 
@@ -123,5 +135,4 @@ I am wondering if it is because we added muggatt and component data to the same 
     
 
 
-> damn, extracted data do not have column titles...
     
