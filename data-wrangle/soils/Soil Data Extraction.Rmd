@@ -90,14 +90,22 @@ Working with gSSURGO data is kind of awkward because you have to join tables of 
   * Extract raster data for points
       + followed directions here https://support.esri.com/en/technical-article/000022163
         + Note need to subset data to avoid 'ERROR 010005: unable to allocate memory'
-        + Extract Values to Points (Search to find tool) - you will need Liscense for Spatial Analyst Tools)
+        + Extract Values to Points (Search to find tool) - you will need License for Spatial Analyst Tools)
         + Input Point Feature - Washington GPS Points
         + Input Raster - WA MapunitRaster_10m 2
         + Output Point Features - extract_GPS_Washington
           + Check 'Interpolate values at the point locations' (note, I am not sure if this is the best choice)
+            + In theory, this models values for points based on surrounding data, it may fill some of the gaps?
+            + However, unchecking this option did not speed up the extraction process. 
           + Check 'Append all the input raster attributes to the output point features'
+            + note, raster data is not included if we do not check this option 
+        + Environments
+          + Uncheck 'Maintain fully qualified field names' as it will rename all the fields muggatt_1 through x to reflect which table it came from originally. 
+        
+> Note the column headers were not extracted correctly following this protocol! Shoot
+I am wondering if it is because we added muggatt and component data to the same raster, then extracted from that raster
 
-
+          
 ### Export Data to table
         
   * Export GPS data with soils data as .csv
