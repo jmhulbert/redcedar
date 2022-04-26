@@ -34,15 +34,22 @@ This package extracts neat data for gps points that can be useful as explanitory
   + Transformed Aspect - may be included in heat load index
   
 
+> Note you will need to extract data to points for each of the calculated rasters above. We will also want some data directly extracted from DEMs
+
+
 
 ## Data
 
 The data used in the below models are described in the [Data Wrangle folder](./data-wrangle). 
 
-Download DEMs
+### Download DEMs
 
 
-https://earthexplorer.usgs.gov/
+#### Earth Explorer Method (errors)
+
+https://earthexplorer.usgs.gov/ - Note these rasters may be too large or have too poor of resolution for use with the geomorphometric toolbox. 
+
+We kept getting errors while trying to create HLI rasters, so we decided to try a DEMs with higher resolution and smaller areas. 
 
 * Earth Explorer (https://earthexplorer.usgs.gov/)
   + Search Criteria
@@ -55,12 +62,10 @@ https://earthexplorer.usgs.gov/
     + Downloaded two DEMS
       + Entity ID: GT30W140N40
       + Entity ID: GT30W140N90
-
-
-Note these rasters may be too large or have too poor of resolution for use with the geomorphometric toolbox. 
-We kept getting errors while trying to create HLI rasters, so we decided to try a DEMs with higher resolution and smaller areas. 
       
       
+#### National Map Method (recommended)
+
 * National Map (https://apps.nationalmap.gov/downloader/#/)
   + Define Area of Interest
     + Selectable Polygon
@@ -77,6 +82,82 @@ We kept getting errors while trying to create HLI rasters, so we decided to try 
     + follow instructions for batch download using uGet
     + Note each tile is about 500MBs
 
+DEMs downloaded for oregon and Washington
+
+```{r include=FALSE, eval=FALSE}
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w116/USGS_13_n45w116_20220309.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w117/USGS_13_n45w117_20220309.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w116/USGS_13_n46w116_20220309.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w117/USGS_13_n46w117_20220309.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w119/USGS_13_n46w119_20220309.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w120/USGS_13_n46w120_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w121/USGS_13_n46w121_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w122/USGS_13_n46w122_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w123/USGS_13_n46w123_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w118/USGS_13_n47w118_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w119/USGS_13_n47w119_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w120/USGS_13_n47w120_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w121/USGS_13_n47w121_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w122/USGS_13_n47w122_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w123/USGS_13_n47w123_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w124/USGS_13_n47w124_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w118/USGS_13_n48w118_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w119/USGS_13_n48w119_20211004.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w122/USGS_13_n48w122_20210615.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w123/USGS_13_n48w123_20210615.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w118/USGS_13_n49w118_20211129.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w125/USGS_13_n47w125_20200213.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w124/USGS_13_n48w124_20200109.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w125/USGS_13_n48w125_20200109.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w123/USGS_13_n49w123_20200107.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w124/USGS_13_n49w124_20200109.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w125/USGS_13_n49w125_20200110.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w116/USGS_13_n44w116_20190614.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w117/USGS_13_n44w117_20190614.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w118/USGS_13_n44w118_20170417.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w119/USGS_13_n44w119_20191127.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w120/USGS_13_n44w120_20191127.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w121/USGS_13_n44w121_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w122/USGS_13_n44w122_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w123/USGS_13_n44w123_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w124/USGS_13_n44w124_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n44w125/USGS_13_n44w125_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w118/USGS_13_n45w118_20181128.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w119/USGS_13_n45w119_20180501.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w120/USGS_13_n45w120_20180501.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w121/USGS_13_n45w121_20180501.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w122/USGS_13_n45w122_20140718.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w123/USGS_13_n45w123_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w124/USGS_13_n45w124_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n45w125/USGS_13_n45w125_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w118/USGS_13_n46w118_20190515.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w124/USGS_13_n46w124_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n46w125/USGS_13_n46w125_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w116/USGS_13_n47w116_20190918.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n47w117/USGS_13_n47w117_20190918.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w125/USGS_13_n43w125_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w122/USGS_13_n43w122_20191125.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w121/USGS_13_n43w121_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w120/USGS_13_n43w120_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w119/USGS_13_n43w119_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w118/USGS_13_n43w118_20170417.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w117/USGS_13_n43w117_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w121/USGS_13_n42w121_20190313.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w125/USGS_13_n42w125_20200122.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w124/USGS_13_n43w124_20210623.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n43w123/USGS_13_n43w123_20210623.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w124/USGS_13_n42w124_20210623.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w123/USGS_13_n42w123_20210623.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n42w122/USGS_13_n42w122_20210624.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w120/USGS_13_n48w120_20161028.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n48w121/USGS_13_n48w121_20130911.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w119/USGS_13_n49w119_20161028.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w120/USGS_13_n49w120_20161028.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w121/USGS_13_n49w121_20180202.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n49w122/USGS_13_n49w122_20180202.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50w122/USGS_13_n50w122_20180202.tif
+https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50w123/USGS_13_n50w123_20180202.tif
+```
 
 ## Methods
 
@@ -89,6 +170,54 @@ We kept getting errors while trying to create HLI rasters, so we decided to try 
             + Copy original GPS file as a new file specifically for use in ARCGIS
           + If you add csv as table with 'add data' button in Map Tab of ArcGIS Pro, you can then right click the layer and select 'display XY data'
             + It will add a layer with your points
+  + Add DEM Tiles
+    + Add tiles (.tif) downloaded from National Map
+      + use 'Add Data' button and browse to DEM .tifs
+      + note this took a while to add the data when you add them all at once. 
+  + Calculate HLI for each tile
+    + Geoprocessing -> Heat Load Index (search for tool)
+      + Select DEM (see list below)  - one at a time.
+      + Add 'HLI_' to front of output_raster name. No need to add file type designation, just leave blank (e.g. HLI_USGS_13_n48w124_20200109)
+  + Calculate CTI
+  + 
+    
+  * DEM tiles used, overlaying points (some ID, MT, and CA points not calculated at this time)
+    + USGS_13_n49w125_20200110
+    + USGS_13_n49w124_20200109
+    + USGS_13_n49w123_20200107
+    + USGS_13_n49w122_20180202
+    + USGS_13_n49w121_20180202
+    + USGS_13_n49w119_20161028
+    + USGS_13_n49w118_20211129
+    + USGS_13_n48w125_20200109
+    + USGS_13_n48w124_20200109
+    + USGS_13_n48w123_20210615
+    + USGS_13_n48w122_20210615
+    + USGS_13_n48w121_20130911
+    + USGS_13_n48w118_20211129
+    + USGS_13_n47w124_20211129
+    + USGS_13_n47w123_20211129
+    + USGS_13_n47w122_20211129
+    + USGS_13_n47w118_20211129
+    + USGS_13_n47w117_20190918
+    + USGS_13_n47w116_20190918
+    + USGS_13_n46w125_20130911
+    + USGS_13_n46w124_20130911
+    + USGS_13_n46w123_20211129
+    + USGS_13_n46w122_20211129
+    + USGS_13_n45w124_20130911
+    + USGS_13_n45w123_20130911
+    + USGS_13_n45w122_20140718
+    + USGS_13_n44w125_20130911
+    + USGS_13_n44w124_20130911
+    + USGS_13_n44w123_20130911
+    
+  
+    
+    
+  
+  
+  
   + Use DEMS to generate HLIs for each tile
   + Merge HLI Rasters
   + Extract HLI data for points in rasters
