@@ -176,7 +176,7 @@ pre code {
 <h2>ArcGIS Toolbox</h2>
 <p>Topo data were extracted for each point using the Geomorphometry and Gradient Metrics Toolbox available <a href="https://www.arcgis.com/home/item.html?id=63ffcecf3b2a45bf99a84cdaedefaccf">here</a>.</p>
 <p>The toolbox was developed by Jeffrey Evans. More information is available at: <a href="https://evansmurphy.wixsite.com/evansspatial/arcgis-gradient-metrics-toolbox" class="uri">https://evansmurphy.wixsite.com/evansspatial/arcgis-gradient-metrics-toolbox</a></p>
-<p>Evans JS, Oakleaf J, Cushman SA (2014) An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. URL: <a href="https://github.com/jeffreyevans/GradientMetrics" class="uri">https://github.com/jeffreyevans/GradientMetrics</a> Accessed: 21 April, 2022.</p>
+<p>Evans JS, Oakleaf J, Cushman SA (2014) An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. URL: <a href="https://github.com/jeffreyevans/GradientMetrics" class="uri">https://github.com/jeffreyevans/GradientMetrics</a> Accessed: 07 May, 2022.</p>
 <p>A manuscript about the package is available <a href="https://www.sciencedirect.com/science/article/pii/S0098300415300613">here</a>.</p>
 </div>
 <div id="explanitory-variables" class="section level2">
@@ -192,12 +192,19 @@ pre code {
 <li>Transformed Aspect - may be included in heat load index</li>
 </ul></li>
 </ul>
+<blockquote>
+<p>Note you will need to extract data to points for each of the calculated rasters above. We will also want some data directly extracted from DEMs</p>
+</blockquote>
 </div>
 <div id="data" class="section level2">
 <h2>Data</h2>
 <p>The data used in the below models are described in the <a href="./data-wrangle">Data Wrangle folder</a>.</p>
-<p>Download DEMs</p>
-<p><a href="https://earthexplorer.usgs.gov/" class="uri">https://earthexplorer.usgs.gov/</a></p>
+<div id="download-dems" class="section level3">
+<h3>Download DEMs</h3>
+<div id="earth-explorer-method-errors" class="section level4">
+<h4>Earth Explorer Method (errors)</h4>
+<p><a href="https://earthexplorer.usgs.gov/" class="uri">https://earthexplorer.usgs.gov/</a> - Note these rasters may be too large or have too poor of resolution for use with the geomorphometric toolbox.</p>
+<p>We kept getting errors while trying to create HLI rasters, so we decided to try a DEMs with higher resolution and smaller areas.</p>
 <ul>
 <li>Earth Explorer (<a href="https://earthexplorer.usgs.gov/" class="uri">https://earthexplorer.usgs.gov/</a>)
 <ul>
@@ -222,6 +229,11 @@ pre code {
 </ul></li>
 </ul></li>
 </ul></li>
+</ul>
+</div>
+<div id="national-map-method-recommended" class="section level4">
+<h4>National Map Method (recommended)</h4>
+<ul>
 <li>National Map (<a href="https://apps.nationalmap.gov/downloader/#/" class="uri">https://apps.nationalmap.gov/downloader/#/</a>)
 <ul>
 <li>Define Area of Interest
@@ -254,6 +266,9 @@ pre code {
 </ul></li>
 </ul></li>
 </ul>
+<p>DEMs downloaded for oregon and Washington (see r markdone script for list of urls to tifs)</p>
+</div>
+</div>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
@@ -265,10 +280,93 @@ pre code {
 <li>Map tab -&gt; Add Data -&gt; Browse to below folder</li>
 <li>C: + Add CSV with iNat GPS - Add GPS points wrangled from data downloaded from iNaturalist project + Note ArcGIS Pro was doing a weird thing where after opening gps csv, it wouldn’t recognize lat/long columns the next time I tried to add it as a layer. + Copy original GPS file as a new file specifically for use in ARCGIS + If you add csv as table with ‘add data’ button in Map Tab of ArcGIS Pro, you can then right click the layer and select ‘display XY data’ + It will add a layer with your points</li>
 </ul></li>
+<li>Add DEM Tiles
+<ul>
+<li>Add tiles (.tif) downloaded from National Map
+<ul>
+<li>use ‘Add Data’ button and browse to DEM .tifs</li>
+<li>note this took a while to add the data when you add them all at once.</li>
+</ul></li>
+</ul></li>
+<li>Calculate HLI (Heat Load Index) for each tile
+<ul>
+<li>Geoprocessing -&gt; Heat Load Index (search for tool)
+<ul>
+<li>Select DEM (see list below) - one at a time.</li>
+<li>Add ‘HLI_’ to front of output_raster name. No need to add file type designation, just leave blank (e.g. HLI_USGS_13_n48w124_20200109)</li>
+</ul></li>
+</ul></li>
+<li>Repeat for the following measurements
+<ul>
+<li>CTI</li>
+<li>TRASP</li>
+<li>SDS</li>
+<li>IMI</li>
+</ul></li>
+</ul></li>
+<li>Variables included are described by -<a href="https://github.com/jeffreyevans/GradientMetrics">Evans et al. 2014</a> as follows.
+<ul>
+<li>Temperature &amp; Moisture
+<ul>
+<li>HLI - Heat Load Index - “A southwest facing slope should have warmer temperatures than a southeast facing slope, even though the amount of solar radiation they recieve is equivalent. The McCune and Keon (2002) method accounts for this by”folding&quot; the aspect so that the highest values are southwest and the lowest values are northeast. Additionally, this method account for steepness of slope, which is not addressed in most other aspect rescaling equations.&quot;
+<ul>
+<li>McCune and Keon (2002). McCune, Bruce and Dylan Keon, 2002. Equations for potential annual direct incident radiation and heat load index. Journal of Vegetation Science. 13:603-606.</li>
+</ul></li>
+<li>CTI - Compound Topographic Index - “steady state wetness index. The CTI is a function of both the slope and the upstream contributing area per unit width orthigonal to the flow direction” -<a href="https://github.com/jeffreyevans/GradientMetrics">Evans et al. 2014</a></li>
+<li>TRASP - Slope/Aspect Transformation - Topographic radiation aspect index (Robert &amp; Cooper 1989) - &quot;Circular aspect is transformed to assign a value of zero to land oriented in a north-northeast direction, (typically the coolest and wettest orientation), and a value of one on the hnotter, dryer south-southwesterly slopes. The result is a continuous variable between 0-1).
+<ul>
+<li>Roberts. D. W., and Cooper, S. V., 1989. Concepts and techniques of vegetation mapping. In Land Classifications Based on Vegetation: Applications for Resource Management. USDA Forest Service GTR INT-257, Ogden, UT, pp 90-96</li>
+</ul></li>
+<li>SDS - 2nd Derivative Slope - &quot; Calculates 2nd derivative of slope&quot;
+<ul>
+<li>the rate of the rate of change in slope? concave or convex?</li>
+</ul></li>
+<li>IMI - Integrated Moisture Index - “Calculates an integrated moisture index (Iverson et al. 1997)”
+<ul>
+<li><a href="https://www.srs.fs.usda.gov/pubs/11583">Iverson, Louis R., et al. “A GIS-derived integrated moisture index to predict forest composition and productivity of Ohio forests (USA).” Landscape Ecology 12.5 (1997): 331-348.</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<blockquote>
+<p>Note I had to add () after the ‘print’ command in scripts for CTI and IMI (docs/arc/toolbox/geomor/…)</p>
+</blockquote>
+<ul>
+<li>DEM tiles used, overlaying points (tiles for some ID, MT, and CA points not calculated at this time)
+<ul>
+<li>USGS_13_n49w125_20200110</li>
+<li>USGS_13_n49w124_20200109</li>
+<li>USGS_13_n49w123_20200107</li>
+<li>USGS_13_n49w122_20180202</li>
+<li>USGS_13_n49w121_20180202</li>
+<li>USGS_13_n49w119_20161028</li>
+<li>USGS_13_n49w118_20211129</li>
+<li>USGS_13_n48w125_20200109</li>
+<li>USGS_13_n48w124_20200109</li>
+<li>USGS_13_n48w123_20210615</li>
+<li>USGS_13_n48w122_20210615</li>
+<li>USGS_13_n48w121_20130911</li>
+<li>USGS_13_n48w118_20211129</li>
+<li>USGS_13_n47w124_20211129</li>
+<li>USGS_13_n47w123_20211129</li>
+<li>USGS_13_n47w122_20211129</li>
+<li>USGS_13_n47w118_20211129</li>
+<li>USGS_13_n47w117_20190918</li>
+<li>USGS_13_n47w116_20190918</li>
+<li>USGS_13_n46w125_20130911</li>
+<li>USGS_13_n46w124_20130911</li>
+<li>USGS_13_n46w123_20211129</li>
+<li>USGS_13_n46w122_20211129</li>
+<li>USGS_13_n45w124_20130911</li>
+<li>USGS_13_n45w123_20130911</li>
+<li>USGS_13_n45w122_20140718</li>
+<li>USGS_13_n44w125_20130911</li>
+<li>USGS_13_n44w124_20130911</li>
+<li>USGS_13_n44w123_20130911</li>
+</ul></li>
 <li>Use DEMS to generate HLIs for each tile</li>
 <li>Merge HLI Rasters</li>
 <li>Extract HLI data for points in rasters</li>
-</ul></li>
 </ul>
 </div>
 
