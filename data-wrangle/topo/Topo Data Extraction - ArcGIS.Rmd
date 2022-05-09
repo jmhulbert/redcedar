@@ -176,7 +176,7 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
       + use 'Add Data' button and browse to DEM .tifs
       + note this took a while to add the data when you add them all at once. 
   + Calculate HLI (Heat Load Index) for each tile
-    + Geoprocessing -> Heat Load Index (search for tool)
+    + Geoprocessing -> Heat Load Index (search for tool or find in catalog/toolboxes/geomporph..)
       + Select DEM (see list below)  - one at a time.
       + Add 'HLI_' to front of output_raster name. No need to add file type designation, just leave blank (e.g. HLI_USGS_13_n48w124_20200109)
   + Repeat for the following measurements (Descriptions Below)
@@ -184,7 +184,15 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
     + TRASP
     + SDS
     + IMI
-  
+    + SP - Slope Position
+      + SP was calculated using default settings (Rectangle, Width=3, Height=3, Units type = Cell)
+      + Some slope position rasters were funky looking without variation in tile.
+    + LF - Landform
+  + Merge Rasters (search for tool - merge multidimensional rasters)
+    + click the down arrow for 'merge many'
+    + select rasters you want to merge (warning - after selecting, it takes a long time to load, before you can even click run)
+
+> Note, I am not sure if it is faster to merge all rasters, then try to extract from rasters for all points. Or whether it is faster to subset the points into each tile, then extract form each raster and tile. 
   
 > Note I had to add () after the 'print' command in scripts for CTI and IMI (docs/arc/toolbox/geomor/...)
 
@@ -234,9 +242,12 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
         + the rate of the rate of change in slope? concave or convex? 
       + IMI - Integrated Moisture Index - "Calculates an integrated moisture index (Iverson et al. 1997)" 
         + [Iverson, Louis R., et al. "A GIS-derived integrated moisture index to predict forest composition and productivity of Ohio forests (USA)." Landscape Ecology 12.5 (1997): 331-348.](https://www.srs.fs.usda.gov/pubs/11583)    
-    
+    + Surface Texture
+      + Slope Position - "calculates scalable slope position by subtracting a focalmean raster from the original elevation raster. Surface/Area Ratio - (float) The Berry (2002) method for surface/area ratio." 
+        + [Berry, J. K. 2002. Use surface area for realistic calculations. Geoworld 15(9): 20–1.]()
+      + Landform- "Concavity/convexity landform index (Bolstad’s variant)." 
   
-  
+
   
   + Use DEMS to generate HLIs for each tile
   + Merge HLI Rasters
