@@ -188,9 +188,15 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
       + SP was calculated using default settings (Rectangle, Width=3, Height=3, Units type = Cell)
       + Some slope position rasters were funky looking without variation in tile.
     + LF - Landform
-  + Merge Rasters (search for tool - merge multidimensional rasters)
+  + Merge Rasters (search for tool - Mosaic to New Raster) - followed instructions at [How To: Merge multiple raster datasets into a new raster dataset in ArcGIS Pro](https://support.esri.com/en/technical-article/000022861) and [How To: Merge multiple raster datasets into a new raster dataset in ArcMap](https://support.esri.com/en/Technical-Article/000015258).
     + click the down arrow for 'merge many'
-    + select rasters you want to merge (warning - after selecting, it takes a long time to load, before you can even click run)
+    + select input rasters you want to merge
+    + Select output location (same geodatabase)
+    + specify name
+    + specify pixel type - use same pixel type as input rasters (32 for CTI rasters)
+      + right click on input rasters in console, select properties, click raster info, look for pixel type and number of bands
+      + Note we chose 32 pixels 'unspecified'
+    + specify number of bands (1 for CTI rasters)
 
 > Note, I am not sure if it is faster to merge all rasters, then try to extract from rasters for all points. Or whether it is faster to subset the points into each tile, then extract form each raster and tile. 
   
