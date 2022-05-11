@@ -52,15 +52,19 @@ data <- read.csv("./data/observations-223649.csv")
 ```
 
 ```{r}
-normals <- read.csv("./data/gps1500_Normal_1991_2020MSY.csv")
+normals <- read.csv("./data/gps1500_Normal_1991_2020MSY.csv",na.string ="-9999")
 colnames(normals) <- str_c("norm_",colnames(normals)) #change column names - not to be confused with decadal data
 normals <- rename(normals, id = norm_ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 ```
 
 ```{r}
-lastdecade <- read.csv("./data/gps1500_Decade_2011_2020MSY.csv")
+lastdecade <- read.csv("./data/gps1500_Decade_2011_2020MSY.csv",na.string ="-9999")
 lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 ```
+
+
+> Note that we included na.string="-9999" when reading data. 
+
 
 ```{r}
 #combo.normals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
@@ -243,6 +247,20 @@ Binary tree health categories
 ```{r}
 binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
+
+## Data visualization
+
+```{r}
+
+ggplot(binary,aes(norm_CMI,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(norm_CMD,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+
+
 
 # Approach
 
@@ -676,7 +694,6 @@ plot(importance)
 ```{r number trees normal monthless model}
 set.seed(71)
 rf <- randomForest(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. ~ ., data=normal.monthless.combo.filtered.nearzerovar, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
-?randomForest
 ```
 
 ```{r}
@@ -729,3 +746,5 @@ varImpPlot(rf)
 importance <- varImp(rf,scale=TRUE)
 plot(importance)
 ```
+
+

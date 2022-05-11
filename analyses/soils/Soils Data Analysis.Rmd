@@ -51,11 +51,9 @@ data <- read.csv("./data/observations-223649.csv")
 ```
 
 
-> damn, extracted data do not have column titles...
-    
-    ```{r}
-wasoils <- read.csv("./data/WA_Soils_Data_Extract_1500.csv",header=TRUE)
-orsoils <- read.csv("./data/OR_Soils_Data_Extract_1500.csv",header=TRUE)
+```{r}
+wasoils <- read.csv("./data/WA_GPS_Soils_1500_Extract.csv",header=TRUE)
+orsoils <- read.csv("./data/OR_GPS_Soils_1500_Extract.csv",header=TRUE)
 wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 # orsoils$compone_71 <- as.integer(orsoils$compone_71) # not sure why, but the compone_71 factor was recognized as a characer rather than an integer in the oregon extract
@@ -123,6 +121,16 @@ All tree health categories
 combo %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
+## Filter Data
+
+Filter trees to only those with soils data (Oregon and Washington)
+
+```{r}
+combo.filtered <- combo %>% filter(RASTERVALU>=0, na.rm=TRUE)
+```
+
+There are `nrow(combo.filtered)` observations from Oregon and Washington
+
 We also need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
 
 We also need to remove other response variables like "field.percent.canopy.affected...." so it is not used as a predictor for tree health. 
@@ -134,7 +142,7 @@ There are also a number of factors that should probably be removed because they 
 First remove iNat factors not useful as explanatory variables (e.g. observed_on)
 
 ```{r}
-combo.filtered <- combo %>% select(-c("field.optional...site.type",
+combo.filtered <- combo.filtered %>% select(-c("field.optional...site.type",
                                       "field.optional...site.hydrology",
                                       "field.optional...site.location.description",
                                       "field.optional...site.area.disturbance.level",
@@ -195,17 +203,25 @@ combo.filtered <- combo %>% select(-c("field.optional...site.type",
  ,"field.optional...timing.of.symptoms.estimate"                                           
 , "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          
 , "field.optional...can.we.follow.up.with.you."
+,"field.notes"                 
 ))
 # combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
 ```
 
+Then, remove specific soils variables not useful as explanatory variables (e.g. MUKEY)
 
 ```{r}
-#Then, remove specific topo variables not useful as explanatory variables (e.g. MUKEY)
-#combo.filtered <- combo.filtered %>% select(-c(
-#, "RASTERVALU"                                                                             
-#, "VAT_MapunitRaster_10m_Count"                                                            
-#, "VAT_MapunitRaster_10m_MUKEY"))
+combo.filtered <- combo.filtered %>% select(-c(
+"OID_"                       
+,"Field1"                      
+,"lat"                         
+,"long"                       
+,"OR_MapunitRaster_10m"
+,"RASTERVALU"                  
+,"VAT_MapunitRaster_10m_MUKEY"
+,"component_mukey"           
+,"component_cokey"
+,"muaggatt_mukey"))
 ```
 
 
@@ -220,6 +236,37 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 ```{r}
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
+
+
+
+## Remove variables with missing data
+
+First, remove columns without any data (entire column is NAs)
+
+```{r}
+combo.filtered <- combo.filtered[,colSums(is.na(combo.filtered)) < nrow(combo.filtered) * 0.8] # Keeps columns that have data for at least 80% of the observations
+#combo.filtered <- combo.filtered[colSums(!is.na(combo.filtered)) > 0] - removes columns that are completely NAs
+# df[, colSums(is.na(df)) < nrow(df) * 0.5] is command for only keeping data with at least half
+```
+
+> **Note we chose to only keep  variables (columns) that contained data for at least 80% of the data**
+
+Then check number of NAs per remaining column
+
+```{r}
+colSums(is.na(combo.filtered))
+```
+
+* The below variables are examples of those without much data (column contains mostly NAs)
+  + component_rsprod_h
+  + component_rsprod_l
+  + component_rsprod_r
+  + component_totalsub_h
+  + component_totalsub_l
+  + component_totalsub_r
+  + component_reannualprecip_r
+  + component_reannualprecip_l
+  + component_reannualprecip_h
 
 
 ## Group response variables to binary values
@@ -240,6 +287,10 @@ Binary tree health categories
 binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
+
+
+
+
 # Approach
 
 * General approach
@@ -258,6 +309,9 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
   + seed was set for reproducability with: set.seed(71)
 
 
+
+
+
 ## Impute data
 
 #### Impute data
@@ -270,20 +324,16 @@ We continue to get the below error, but were able to work around it by imputing 
 
 To impute the data we have to remove factors with >53 levels. For example, 'component_taxclnam' has 132 levels
 
-The below code lists the number of levels for the variables that are factors. 
 
 ```{r echo=TRUE, include=FALSE}
+#The below code lists the number of levels for the variables that are factors. 
+#Note you need to remove echo=TRUE,include=FALSE to run this by clicking arrow.
 for (n in names(binary))
   if (is.factor(binary[[n]])) {
     print(n)
     print(length(levels(binary[[n]])))
   }
 ```
-
-```{r}
-names(binary)
-```
-
 
 * The following factors had more than 53 levels
   + "muaggatt_musym" 
@@ -292,9 +342,10 @@ names(binary)
   + "component_geomdesc"
   + "component_taxclname"
   + "component_taxsubgrp"
+  + "component_taxgrtgroup"
 
 ```{r}
-less.fifty.three <- binary %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp")) # again, this may seem like a more difficult way than subsetting with df[-c(240,241,279,299,322,326)], but its easier in the long run when column numbers change as the data is filtered or added to. 
+less.fifty.three <- binary %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp","component_taxgrtgroup")) 
 ```
 
 Imputed data table
@@ -356,6 +407,57 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
 ```{r fig.height=9,fig.width=12}
 varImpPlot(rf)
 ```
+
+## Data visualization
+
+```{r}
+summary(binary$component_taxsuborder)
+```
+
+```{r}
+ggplot(binary,aes(component_taxsuborder,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition", values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_taxorder,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_taxtempcl ,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(muaggatt_wtdepaprjunmin,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_irrcapcl,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+summary(binary$component_taxpartsize)
+```
+
+```{r}
+ggplot(binary,aes(component_taxpartsize,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+summary(binary$component_slopelenusle_r)
+```
+```{r}
+summary(binary$component_irrcapcl)
+```
+
+```{r}
+summary(binary$component_map_r)
+```
+
+```{r}
+summary(binary$muaggatt_iccdcd)
+```
+
+
 
 ```{r}
 importance <- varImp(rf,scale=TRUE)
