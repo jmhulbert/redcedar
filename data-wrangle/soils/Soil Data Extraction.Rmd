@@ -7,6 +7,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Sidenote
+
+Place holder to remind me to read this paper that uses soil data: https://www.sciencedirect.com/science/article/pii/S0378112718315159?casa_token=yB8_4j_LcCMAAAAA:MwWJnLJyW5vVMMvYHK86H2EMpwIN6zqhxydcB_XsRgPxljYtJgHvbTrLMAbLVdaC9UxDki1w
+
 ## Purpose
 
 The purpose of this Markdown Document is to record the methods for extracting soils data for the redcedar GPS points.
@@ -21,6 +25,16 @@ Unfortunately, I had to do this with windows because the soils data I am first e
   + Look for alternative soils data that are in another format?
   
 Below are the methods I used to extract the soils data for the GPS points.
+
+## Soil Data
+
+Review the [gSSURGO User Guide (PDF)](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053631) for data descriptions and instructions. 
+
+* Associated Tables in the gSSURGO Database
+  + "A complete description of the tables and their relationships is included on the [SSURGO webpage](http://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053631). Some
+of the commonly used tables are described below. Specific information is located in the SSURGO Tables
+and Columns Report document found on the [SSURGO Structural Metadata and Documentation
+webpage](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053631)."
 
 
 ## Download Data
@@ -102,14 +116,12 @@ Note, if you have trouble with having enough memory, check that gps points were 
         + Output Point Features - extract_GPS_Washington
           + Check 'Interpolate values at the point locations' (note, I am not sure if this is the best choice)
             + In theory, this models values for points based on surrounding data, it may fill some of the gaps?
-            + However, unchecking this option did not speed up the extraction process. 
+            + Note, unchecking this option did *not* speed up the extraction process. 
           + Check 'Append all the input raster attributes to the output point features'
             + note, raster data is not included if we do not check this option 
-        + Environments
-          + Uncheck 'Maintain fully qualified field names' as it will rename all the fields muggatt_1 through x to reflect which table it came from originally. 
-        
-> Note the column headers were not extracted correctly following this protocol! Shoot
-I am wondering if it is because we added muggatt and component data to the same raster, then extracted from that raster
+  
+
+> Note the column headers were not extracted correctly following this protocol! 
 
 Apparently, .shp files can only have fields 10 characters long, so it was automatically truncating the field names. The [help](https://pro.arcgis.com/en/pro-app/latest/tool-reference/spatial-analyst/extract-values-to-points.htm) suggests extracting it as a geodatabase rather than a shapefile in this case: 
 

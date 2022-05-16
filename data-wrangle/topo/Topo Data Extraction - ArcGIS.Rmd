@@ -162,6 +162,8 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
 
 ## Methods
 
+### Add data
+
 * Process
   + Add iNat observations
     + Map tab -> Add Data -> Browse to below folder
@@ -174,35 +176,27 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
   + Add DEM Tiles
     + Add tiles (.tif) downloaded from National Map
       + use 'Add Data' button and browse to DEM .tifs
-      + note this took a while to add the data when you add them all at once. 
+      + note this took a while to add the data when you add them all at once.
+      
+### Calculate new tiles
+
+* Calculate states using Evans et al package. 
   + Calculate HLI (Heat Load Index) for each tile
     + Geoprocessing -> Heat Load Index (search for tool or find in catalog/toolboxes/geomporph..)
       + Select DEM (see list below)  - one at a time.
       + Add 'HLI_' to front of output_raster name. No need to add file type designation, just leave blank (e.g. HLI_USGS_13_n48w124_20200109)
   + Repeat for the following measurements (Descriptions Below)
     + CTI
+      + *Note I had to add () after the 'print' command in scripts for CTI and IMI (docs/arc/toolbox/geomor/...)*
     + TRASP
     + SDS
     + IMI
     + SP - Slope Position
       + SP was calculated using default settings (Rectangle, Width=3, Height=3, Units type = Cell)
       + Some slope position rasters were funky looking without variation in tile.
-    + LF - Landform
-  + Merge Rasters (search for tool - Mosaic to New Raster) - followed instructions at [How To: Merge multiple raster datasets into a new raster dataset in ArcGIS Pro](https://support.esri.com/en/technical-article/000022861) and [How To: Merge multiple raster datasets into a new raster dataset in ArcMap](https://support.esri.com/en/Technical-Article/000015258).
-    + click the down arrow for 'merge many'
-    + select input rasters you want to merge
-    + Select output location (same geodatabase)
-    + specify name
-    + specify pixel type - use same pixel type as input rasters (32 for CTI rasters)
-      + right click on input rasters in console, select properties, click raster info, look for pixel type and number of bands
-      + Note we chose 32 pixels 'unspecified'
-    + specify number of bands (1 for CTI rasters)
-
-> Note, I am not sure if it is faster to merge all rasters, then try to extract from rasters for all points. Or whether it is faster to subset the points into each tile, then extract form each raster and tile. 
+    + LF - Landform - Note we left this calculation incomplete for the moment. 
   
-> Note I had to add () after the 'print' command in scripts for CTI and IMI (docs/arc/toolbox/geomor/...)
 
-    
   * DEM tiles used, overlaying points (tiles for some ID, MT, and CA points not calculated at this time)
     + USGS_13_n49w125_20200110
     + USGS_13_n49w124_20200109
@@ -254,9 +248,67 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
       + Landform- "Concavity/convexity landform index (Bolstad’s variant)." 
   
 
-  
-  + Use DEMS to generate HLIs for each tile
-  + Merge HLI Rasters
-  + Extract HLI data for points in rasters
-  
+### Merge tiles
 
+  + Merge Rasters (search for tool - Mosaic to New Raster) - followed instructions at [How To: Merge multiple raster datasets into a new raster dataset in ArcGIS Pro](https://support.esri.com/en/technical-article/000022861) and [How To: Merge multiple raster datasets into a new raster dataset in ArcMap](https://support.esri.com/en/Technical-Article/000015258).
+    + click the down arrow for 'merge many'
+    + select input rasters you want to merge
+    + Select output location (same geodatabase)
+    + specify name
+    + specify pixel type - use same pixel type as input rasters (32 for CTI rasters)
+      + right click on input rasters in console, select properties, select source, click raster info, look for pixel type and number of bands
+      + Note we need to use 32 bit 'float' to match input rasters. It did not work to use 'unsigned' with SP or HLI rasters (0-1 values). 
+    + specify number of bands (1 for CTI rasters)
+    + Mosaic operator - we left it as the default (last tile) value
+    + Mosaic colormap mode - we left it as the default (first tile) value
+    
+> Note, the merged raster was not displaying correctly (there were many gaps between tiles), but the values were calculated - zoom in to see.
+
+Because we're just interested in extracting values to points right now, we went ahead without resolving the display issues. The data was still extracted correctly.
+
+* References for display issues
+  + One work around is to save output in seperate folder
+    + https://gis.stackexchange.com/questions/112774/mosaic-to-new-raster-tool-fail
+    + https://community.esri.com/t5/data-management-questions/toruble-with-lidar-data-and-using-the-tool-mosaic/td-p/561651
+    + https://community.esri.com/t5/data-management-questions/mosaic-to-new-raster/td-p/554957
+  
+> Note, I am not sure if it is faster to merge all rasters, then try to extract from rasters for all points. Or whether it is faster to subset the points into each tile, then extract form each raster and tile. 
+
+Merged HLI mosaic raster lost data and only had values of 0 or 1, it should be full of values 0.1-0.99. 
+
+          
+### Extract data for points     
+     
+  * Extract raster data for points
+      + followed directions here https://support.esri.com/en/technical-article/000022163
+        + Note need to subset data to avoid 'ERROR 010005: unable to allocate memory'
+        + Extract Values to Points (Search to find tool) - you will need License for Spatial Analyst Tools)
+        + Input Point Feature - gps1500forArcGIS_topo
+        + Input Raster - CTI_merge
+        + Output Point Features - CTI_extract_1500 - make sure to save to same gdb
+          + Check 'Interpolate values at the point locations' (note, I am not sure if this is the best choice)
+            + In theory, this models values for points based on surrounding data, it may fill some of the gaps?
+            + Note, unchecking this option did *not* speed up the extraction process. 
+          + Check 'Append all the input raster attributes to the output point features'
+            + note, raster data is not included if we do not check this option 
+          + Make sure to extract new file into same geodatabase to avoid losing column names (see Soils Data Extract instructions).
+      + Repeat for each variable, save as seperate layers. 
+        + DEM_extract_1500
+        + HLI_extract_1500
+        + IMI_extract_1500
+        + SDS_extract_1500
+        + SP_extract_1500
+        + TRASP_extract_1500
+        + CTI_extract_1500
+
+
+### Export Data to table
+        
+  * Export GPS data with soils data as .csv
+        + Right click layers created above -> Data -> Export Table
+          + Input rows - DEM_extract_1500
+          + browse to folder to save file (e.g. redcedar/serverfiles/data)
+          + be sure to add '.csv' to end of file name (e.g. _Data.csv)
+          
+          
+          
