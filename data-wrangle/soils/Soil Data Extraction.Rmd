@@ -87,7 +87,9 @@ Note, if you have trouble with having enough memory, check that gps points were 
         
 > Note ArcGIS Pro was doing something ackward where it would re-add the Washington points to the OR shapefile and vice versa. One workaround was to export it as a csv immediately after adding selection as new layer, then displaying the XY data as described above. 
       
-### Join Data     
+### Join Data 
+
+> Note there are many tables and datasets that may be more valuable for other analyses. Check the table [here](https://www.nrcs.usda.gov/wps/PA_NRCSConsumption/download/?cid=stelprdb1241115&ext=pdf) for a list of tables. Tip-search for keywords you're interested in. 
     
    * Join Data (Follow gSSUGO User Guide for joining Data) - complete for each state
       + Muaggatt data
@@ -95,15 +97,23 @@ Note, if you have trouble with having enough memory, check that gps points were 
           + Input: OR MapunitRaster_10m
           + Input Join Field: MUKEY
           + Join Table: OR Mapunit Aggregated Attribute (muaggatt)
+            + Note you may need to browse to the folder containing the gSSURGO_OR.gbd geodatabase.
           + Join Table Field: MUKEY
+      + Repeat with Valu1 table
       + Repeat with Component TAble
-          + This time use Input Join Field 'MUPOLYGON.MUKEY or VAT_OR MApunitRaster_10m.MUKEY'
-          + Might not have MUKEY file for join field, instead use 'Map Unit Key'
+        + This time use Input Join Field 'MUPOLYGON.MUKEY or VAT_OR MApunitRaster_10m.MUKEY'
+        + Might not have MUKEY file for join field, instead use 'Map Unit Key'
+      + Repeat with Component Ecological Class (coecoclass) Table
+        + Note this table is based of the above component key (relates), therefore component needs to be joined first. 
+          + Use Component.cokey as join field
+          + use Component Key (cokey) as input field. 
       + (Optional) Not recommended though -too much data - Repeat with Chorizon Table
-          + Use Component.cokey and Component Key as Join Fields
+        + Use Component.cokey and Component Key as Join Fields
       + (Optional) Note the same process can be followed for adding table data to the shape file (MUPOLYGON).
         + Directions for using shapefiles are available here [YouTube Video](https://youtu.be/zGfT1v8Fmug)
-            + This process also involves Dissolve to Dissolve Shapefile by MUKEY - split rows with same MUKEY values?
+          + This process also involves Dissolve to Dissolve Shapefile by MUKEY - split rows with same MUKEY values?
+
+> Note the valu1 table has a seperate reference for the dataset. 
 
 ### Extract data for points     
      

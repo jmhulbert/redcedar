@@ -178,6 +178,9 @@ https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n50
       + use 'Add Data' button and browse to DEM .tifs
       + note this took a while to add the data when you add them all at once.
       
+      
+> Note, it may be more efficient to merge the tiles (mosaic to new raster - see below) and then do the below calculations on the mosaics. However, it may be too machine intensive to do the below calculations on large mosaics. It would save the user **a lot** of time, but processing may take longer.     
+      
 ### Calculate new tiles
 
 * Calculate states using Evans et al package. 
@@ -281,7 +284,6 @@ Merged HLI mosaic raster lost data and only had values of 0 or 1, it should be f
      
   * Extract raster data for points
       + followed directions here https://support.esri.com/en/technical-article/000022163
-        + Note need to subset data to avoid 'ERROR 010005: unable to allocate memory'
         + Extract Values to Points (Search to find tool) - you will need License for Spatial Analyst Tools)
         + Input Point Feature - gps1500forArcGIS_topo
         + Input Raster - CTI_merge
@@ -301,6 +303,7 @@ Merged HLI mosaic raster lost data and only had values of 0 or 1, it should be f
         + TRASP_extract_1500
         + CTI_extract_1500
 
+> Note it may be more efficient to merge or join the shapefiles at this point, but we chose to export them as seperate .csv files at this point. 
 
 ### Export Data to table
         
