@@ -1,7 +1,7 @@
 # redcedar
 Western Redcedar Dieback Map data analyses
 
-The purpose of this repository is to ensure the reporducability of the analyses conducted with data collected in the [Western Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project. Anyone is welcome to collaborate in the analyses of these data. 
+The purpose of this repository is to ensure the reproducibility of the analyses conducted with data collected in the [Western Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project. Anyone is welcome to collaborate in the analyses of these data. 
 
 The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback. 
 
