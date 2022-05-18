@@ -7,4 +7,4 @@ The overall approach is to model empirical data collected by community scientist
 
 Please check back again soon for more information about this repo. In the mean time, please contact [JM Hulbert](https://jmhulbert.github.io) if you're interested in contributing. 
 
-More information about methods to help address the pressing enviornmental issues affecting our forests is available at the [Forest Health Watch](https://foresthealth.org) website.
+More information about methods to help address the pressing environmental issues affecting our forests is available at the [Forest Health Watch](https://foresthealth.org) website.
