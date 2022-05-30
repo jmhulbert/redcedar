@@ -109,7 +109,7 @@ Note, if you have trouble with having enough memory, check that gps points were 
           + use Component Key (cokey) as input field. 
       + (Optional) Not recommended though -too much data - Repeat with Chorizon Table
         + Use Component.cokey and Component Key as Join Fields
-      + (Optional) Note the same process can be followed for adding table data to the shape file (MUPOLYGON).
+      + (Optional) Note the same process can possibly be followed for adding table data to the shape file (MUPOLYGON).
         + Directions for using shapefiles are available here [YouTube Video](https://youtu.be/zGfT1v8Fmug)
           + This process also involves Dissolve to Dissolve Shapefile by MUKEY - split rows with same MUKEY values?
 

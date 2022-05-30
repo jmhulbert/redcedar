@@ -12,7 +12,7 @@ knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/")
 
 # Purpose
 
-The purpose of this markdown document is to list the steps completed for analysis of the iNaturalist data. 
+The purpose of this markdown document is to list the steps completed for visualization of iNaturalist data.
 
 # Data
 

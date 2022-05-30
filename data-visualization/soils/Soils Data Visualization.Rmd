@@ -1,0 +1,162 @@
+---
+title: "Soils Data Visualization"
+author: "Joey Hulbert"
+date: "5/18/2022"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(randomForest)
+library(caret)
+library(rpart)
+library(knitr)
+```
+
+```{r}
+data <- read.csv("./data/observations-223649.csv")
+```
+
+```{r}
+wasoils <- read.csv("./data/soils_extract_files/WA_soils_extract_1500_valu1.csv",header=TRUE)
+orsoils <- read.csv("./data/soils_extract_files/OR_soils_extract_1500_valu1.csv",header=TRUE)
+wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
+# orsoils$compone_71 <- as.integer(orsoils$compone_71) # not sure why, but the compone_71 factor was recognized as a characer rather than an integer in the oregon extract
+pnwsoils <- bind_rows(wasoils,orsoils)
+```
+
+```{r}
+#combo.normals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
+#combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id") 
+combo <- left_join(data,pnwsoils,by="id")
+```
+
+```{r}
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
+combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
+combo <- combo %>% droplevels()
+combo$field.tree.canopy.symptoms <- as.factor(combo$field.tree.canopy.symptoms)
+#levels(combo$field.tree.canopy.symptoms)
+```
+
+```{r}
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
+combo <- combo %>% droplevels()
+combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+#levels(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
+```
+
+```{r}
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
+combo$field.optional...tree.size[combo$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
+combo <- combo %>% droplevels()
+combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
+#levels(combo$field.optional...tree.size)
+```
+
+# Data wrangling
+
+There are multiple methods to group the response variables deepening on desired resolution or fineness of the model. 
+
+* Response grouping options
+  + Original (no change)
+  + Filtered Symptoms
+    + We could drop trees outside of main symptom classes
+       + Note loss of data outside of categories
+  + Reclassified symptoms
+    + Here we can created an 'other' variable to represent trees with the below symptoms
+        + extra cone crop
+        + yellowing canopy
+    + We can also group trees with 'old dead tops' and 'new dead tops' into a 'dead top' category
+  + Binary (healthy/unhealthy)
+
+For now, we can move forward with the binary response grouping because it is the broadest and presumably the easiest for the model to classify with. 
+
+
+All tree health categories
+
+```{r}
+combo %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+```{r}
+combo.filtered <- combo %>% filter(RASTERVALU>=0, na.rm=TRUE)
+```
+
+
+## Group response variables to binary values
+
+```{r}
+level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
+
+binary <- combo.filtered
+binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
+#levels(binary$field.tree.canopy.symptoms)
+binary <- binary %>% filter(field.tree.canopy.symptoms!="Candelabra top or very old spike top (old growth)") %>% droplevels()
+binary$field.tree.canopy.symptoms <- as.factor(binary$field.tree.canopy.symptoms)
+```
+
+Binary tree health categories
+
+```{r}
+binary %>% group_by(field.tree.canopy.symptoms) %>% count()
+```
+
+## Data visualization
+
+```{r}
+ggplot(binary,aes(component_taxsuborder,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition", values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(muaggatt_iccdcd,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition", values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(muaggatt_iccdcd,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+
+```{r}
+ggplot(binary,aes(component_taxorder,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_taxtempcl ,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_hydgrp ,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(muaggatt_wtdepaprjunmin,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_irrcapcl,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+ggplot(binary,aes(component_aspectccwise,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```
+
+```{r}
+summary(binary$component_taxpartsize)
+```
+
+```{r}
+ggplot(binary,aes(component_taxpartsize,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```

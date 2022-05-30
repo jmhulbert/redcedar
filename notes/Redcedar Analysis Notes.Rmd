@@ -15,21 +15,31 @@ The purpose of this markdown document is to kepe a central space to record notes
 
 # General Notes
 
+Soils data - at one point we wanted to only keep  variables (columns) that contained data for at least 80% of the data. However, this bit of code is not actually used in the analyses, we applied the 80% to combo.filtered, but we proceeded with combo.filtered.nearzerovar so the change was not applied. 
+
+
 * Notes 4.10.22
-  + I am noticing the elevation doesn't get added with climate data, maybe I need to add the eleveation before extracting climate data for more accurate climate values ?
+  + I am noticing the elevation doesn't get added with climate data, maybe I need to add the elevation before extracting climate data for more accurate climate values ?
   
   
+* Notes 5.18.22
+  + We suspect that soil particle size and suborder are top level predictors because we haven't limited the number of branches in each tree. Therefore, if each classification tree can have 36 branches as the top branch, then of course branching at each of the 36 soil suborders in the data is the best first step. 
+  + We need to better understand what soil component column levels are; what do values for h, r, and l (high, RV, and low)) represent in soils component data? For example, slope length is provided for h, r, and l column levels. 
+
   
-# Response variables
+  
+## Response variables
 
 
 * Response variables to consider
   + Number of unhealthy trees
   + Tree canopy symptoms
+    + Binary
+    + Filtered
+    + Unfiltered
 
 
-
-# Explanatory variables
+## Explanatory variables
 
 * Explanatory variables included
   + iNat data
@@ -37,3 +47,193 @@ The purpose of this markdown document is to kepe a central space to record notes
   + Climate data
     + 30yr normals 1991-2020 (265 variables)
     + last decade  2011-2020 (265 variables)
+    
+> Lets add summaries for how many variables each of these datasets provided
+
+Note there may be a third soils dataset to incorporate. Also, need to confirm the normals data is actually the latest normal data.     
+    
+* Response grouping options
+  + Original (no change)
+  + Filtered Symptoms
+    + We could drop trees outside of main symptom classes
+       + Note loss of data outside of categories
+  + Reclassified symptoms
+    + Here we can created an 'other' variable to represent trees with the below symptoms
+        + extra cone crop
+        + yellowing canopy
+    + We can also group trees with 'old dead tops' and 'new dead tops' into a 'dead top' category
+  + Binary (healthy/unhealthy)
+  
+
+# Notes from Analysis v1
+
+### Limitations
+
+* Below are some limitations to these results to clarify
+  + representation of the data were heavily biased to the western side of Washington and Oregon (west of the Cascades). 
+### Next steps
+ * Do following before next commit
+    + calculate better topographic variables (aspect, and those that combine both topo and climate data?) 
+    + look into what is happening with -9999 values in components
+
+# Notes from Analysis v2 
+  
+  
+  ##### Concerns
+
+* Below are some concerns that should be investigated
++ The error rate is pretty high  (~35%)
++ The MDS plots only represent a small percentage of the 
+
+##### Questions
+
+* Below are some questions to resolve moving forward
+  + What is difference between MeanDecreaseAccuracy ad MeanDecreaseGini
+    + MeanDecreaseAccuracy - how much the factor affected classification trees across, averaged for all 2000 trees?
+    + MeanDecreaseGini - variation in influence of factor compared to other factors? 
+
+### Limitations
+
+* Below are some limitations to these results to clarify
+  + representation of the data were heavily biased to the western side of Washington and Oregon (west of the Cascades). 
+
+
+### Next steps
+ * Do following before next commit
+    + calculate better topographic variables (aspect, and those that combine both topo and climate data?) 
+    + look into what is happening with -9999 values in components
+
+
+### Notes from meeting with MC
+  * Next steps
+    + Correlation model between all variables - variables will be highly correlated 
+    + Pick top ten that are uncorrelated
+      + knock out some of the variables, keep the uncorrelated variables
+      + Then see how model preforms
+    + explore validatoin tools built into randomforests that could be used instead of subsetting the data
+    + if you're not predicting into the future, than we may not need to split the dataset
+  
+  Just interested in identifying drivers
+
+
+# Notes from v3
+
+## Version 3 Notes
+
+* Comments about this Analysis version
+  + It does not subset the data into test or train
+    + although I am reconsidering this
+  + It only models 'filtered symptoms (5 groups)
+    + is it better to ignore the other symptoms or group them all as 'unhealthy'
+    + also worth considering whether dead tops should be grouped.
+    
+    
+### Limitations
+
+* Below are some limitations to these results to clarify
+  + representation of the data were heavily biased to the western side of Washington and Oregon (west of the Cascades). 
+
+
+### Next steps
+ * Do following before next commit
+    + calculate better topographic variables (aspect, and those that combine both topo and climate data?) 
+    + look into what is happening with -9999 values in components
+    + does it make sense to group dead tops?
+    + try hyperparameter tuning to determine best parameters for model (see https://www.youtube.com/watch?v=Ptd2NXdtHl4 and https://jsimkins2.github.io/geog473-673/random-forest-modeling.html) 
+    + remove climate data for individual months?
+    + check whether valu1 data are available in gssurgo data in addition to muaggat and component
+
+
+### Notes from meeting with MC 
+  * Next steps
+    + Correlation model between all variables - variables will be highly correlated
+      + how does the model perform differently when some of the variables are excluded
+      + if the model does fairly well with less variables, removing them is easily justified
+    + Pick top ten that are uncorrelated
+      + knock out some of the variables, keep the uncorrelated variables
+      + Then see how model preforms
+        + compare OOB, commission errors, ommission errors
+        + set up some model without highly correlated r values
+    + explore validation tools built into randomforests that could be used instead of subsetting the data
+      + if you're not predicting into the future, than we may not need to split the dataset
+  
+  * Create a map (WA and OR)
+    + Soil Great Groups
+      + Map using ArcGIS and gsurrgo data
+    + CMI values
+      + Export DEM of OR and WA (90mx90m if possible)
+        + Create DEM in ArcGIS?
+      + Upload DEM in ClimateNA tool (see https://www.youtube.com/watch?v=9IkcmnzlNqg&feature=youtu.be)    
+
+# Notes from summary v1 
+
+# Notes
+
+* Aspects to consider or check
+  + There may be another set of soil variables that would be valuable to include
+  + There may be an updated set of normals to work with
+
+* Notes from MC 2/18/22
+  + Steps
+    + 1 establish credibility
+      + establish approach is a robust technique and credible by sharing best model first
+        + First layout model - healthy and unhealthy - can see difference between healthy and unhealthy
+        + Able to say with certainty where healthy and unhealthy trees are located on landscape based on these variables
+    + 2 then explore other variables
+      + unpack model - increases uncertainty, but more interesting
+        + interesting to explore health characteristics and the variables that distinguish where they're located on landscape
+        + compare thinning, dead top, healthy
+
+
+* Notes from writing paper (4.7.2022)
+  + How should we explain the steps toward selecting a model. 
+    + Two primary analyses
+        + Climate data only with entire dataset
+        + climate and soils data with dataset limited to Oregon and Washington
+    + Both analyses followed some intiial exploration to simplify the number of groupings of environmental data. 
+
+
+
+
+# Notes from visualization and exploration v1 
+
+## Running questions
+
+* Below are some questions to revisit during further analysis
+  + Should we look at data from last decade only rather than last 30 years?
+  + How to structure this document
+    + climate variable (MAT, MAP)
+      + compare across symptoms (filtered?)
+      + compare across 'number of unhealthy trees'
+      + compare across size class?
+      + compare across site type?
+
+# Notes from visualization and exploration v2 
+
+## Open questions
+
+The below bullets are questions or comments that should be resolved before final analyses
+
+* Considerations
+  + Should we filter data to remove GPS points with poor accuracy?
+  + Data averaged over last decade or last 30 years?
+  + Better approach to calculate topographic data?
+  + Should we restrict data to Washington and Oregon because that is where soils data is available. 
+  + Should we look at data from last decade only or also from last 30 years?
+
+## Notes
+
+  * Important notes to consider when visualizing these data.
+    + **Observations are filtered to only include those with Soils Data**
+    + Data is filtered to show most common symptoms only. 
+    
+
+
+Results 
+| Model | Data | data treat |# vars | # tried at split* | OOB    | top 5 ACC | top 5 Gini| 
+|:------|:-----|:-----------|:-----:|:-----------------:|:------:|:----------|:----------| 
+| iNat  | full | raw        |       | 3                 | 35.15  | 
+|full   | OR&WA| imputed,nz |
+
+
+* number of vars tried at each split, default is npredictors /3 

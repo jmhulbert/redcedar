@@ -104,7 +104,6 @@ binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
 ```{r}
-names(binary)
 binary.factors <- binary %>% select(-c("id"  
 ,"observed_on_string"                                                                     
 ,"observed_on"                                                                            
@@ -161,7 +160,7 @@ binary.factors <- binary %>% select(-c("id"
 ```
 
 
-* Note the following fields were removed because they're not explanitory variables for the below model
+* Note the following fields were removed because they're not explanatory variables for the below model
   + "field.optional...were.there.any.other.unhealthy.plant.species.on.the.site."             
   + "field.optional...timing.of.symptoms.estimate"                                           
   + "field.optional...estimated.time.spent.to.make.this.observation....of.minutes."          

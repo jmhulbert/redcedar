@@ -203,16 +203,3 @@ binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symp
 binary %>% group_by(field.tree.canopy.symptoms) %>% count()
 ```
 
-#### Severe sites only
-
-It may be valuable to explore patterns in severe sites only, but there are too few numbers at this point. 
-
-```{r}
-severe <- filtered.symptoms %>% filter(field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="More than 10" | field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="7-10") %>% droplevels()
-#include below code at beginning of filter to filter tree size too
-#field.optional...tree.size=="Large (too big to wrap arms around trunk)" &
-```
-
-```{r}
-severe %>% group_by(field.tree.canopy.symptoms) %>% count()
-```

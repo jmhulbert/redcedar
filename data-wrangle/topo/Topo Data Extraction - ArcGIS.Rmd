@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The purpose of this Markdown Document is to record the methods for extracting topo data for the 1500 redcedar GPS points using ArcGIS.
 
-**Note the below data can only be extracted for trees within the US. :( **
+**Note the below data can only be extracted for trees within the US.**
 
 ## ArcGIS Toolbox
 
@@ -33,7 +33,9 @@ This package calculates neat data for DEM rasters that can be useful as explanit
   + Slope Position
   + Heat Load Index - slope, aspect and latitude
   + 2nd derivitive slope - concave vs convexity? 
-  + Transformed Aspect 
+  + Transformed Aspect - TRASP
+  + Integrated Moisture Index
+  + Elevation (DEM)
   
 
 > Note you will need to extract data to points for each of the calculated rasters above. We will also want some data directly extracted from DEMs

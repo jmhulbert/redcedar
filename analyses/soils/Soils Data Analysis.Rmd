@@ -43,17 +43,19 @@ Below we compare models using canopy symptoms as the response variable
   + iNat data
     + explanatory variables such as tree size
   + Soils data
-    + muggatt 
-    + component
+    + Muggatt 
+    + Component
+      + Component Ecological Class (coecoclass) - related to component
+    + Valu1
     
 ```{r}
 data <- read.csv("./data/observations-223649.csv")
+#data.filtered <- data %>% select(c("id","field.tree.canopy.symptoms")) - remove all data except response variable of interest
 ```
 
-
 ```{r}
-wasoils <- read.csv("./data/WA_GPS_Soils_1500_Extract.csv",header=TRUE)
-orsoils <- read.csv("./data/OR_GPS_Soils_1500_Extract.csv",header=TRUE)
+wasoils <- read.csv("./data/soils_extract_files/WA_soils_extract_1500_valu1.csv",header=TRUE)
+orsoils <- read.csv("./data/soils_extract_files/OR_soils_extract_1500_valu1.csv",header=TRUE)
 wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
 # orsoils$compone_71 <- as.integer(orsoils$compone_71) # not sure why, but the compone_71 factor was recognized as a characer rather than an integer in the oregon extract
@@ -75,25 +77,6 @@ combo$field.tree.canopy.symptoms[combo$field.tree.canopy.symptoms=="dead top"] <
 combo <- combo %>% droplevels()
 combo$field.tree.canopy.symptoms <- as.factor(combo$field.tree.canopy.symptoms)
 #levels(combo$field.tree.canopy.symptoms)
-```
-
-```{r}
-combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
-combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
-combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-combo <- combo %>% droplevels()
-combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-#levels(combo$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-```
-
-```{r}
-combo$field.optional...tree.size[combo$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-combo$field.optional...tree.size[combo$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-combo$field.optional...tree.size[combo$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-combo$field.optional...tree.size[combo$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-combo <- combo %>% droplevels()
-combo$field.optional...tree.size <- as.factor(combo$field.optional...tree.size)
-#levels(combo$field.optional...tree.size)
 ```
 
 # Data wrangling
@@ -123,13 +106,20 @@ combo %>% group_by(field.tree.canopy.symptoms) %>% count()
 
 ## Filter Data
 
+
+### Filter observations
+
+Before filtering, there were `nrow(combo)` observations in the iNat data. However, these include observations from Canada, Washington, Oregon, Idaho, Montana, California.
+
 Filter trees to only those with soils data (Oregon and Washington)
 
 ```{r}
 combo.filtered <- combo %>% filter(RASTERVALU>=0, na.rm=TRUE)
 ```
 
-There are `nrow(combo.filtered)` observations from Oregon and Washington
+After filtering, there are `nrow(combo.filtered)` observations from Oregon and Washington.
+
+### Filter columns or predictors
 
 We also need to filter the data to only include response and explanatory variables we're interested in. For example, whether a sound clip was included in the iNat data is not important. 
 
@@ -210,22 +200,60 @@ combo.filtered <- combo.filtered %>% select(-c("field.optional...site.type",
 
 Then, remove specific soils variables not useful as explanatory variables (e.g. MUKEY)
 
+#### Removed from muaggatt
+
 ```{r}
 combo.filtered <- combo.filtered %>% select(-c(
 "OID_"                       
 ,"Field1"                      
 ,"lat"                         
-,"long"                       
+,"long"
+,"el"
+,"RASTERVALU" 
 ,"OR_MapunitRaster_10m"
-,"RASTERVALU"                  
+,"VAT_MapunitRaster_10m_Count"
 ,"VAT_MapunitRaster_10m_MUKEY"
-,"component_mukey"           
-,"component_cokey"
-,"muaggatt_mukey"))
+,"muaggatt_OBJECTID"
+,"muaggatt_mukey"
+))
 ```
 
+#### Removed from component
 
-Remove variables with variables that have near zero standard deviations (entire column is same value)
+```{r}
+combo.filtered <- combo.filtered %>% select(-c(
+"component_OBJECTID" 
+,"component_mukey"           
+,"component_cokey"
+))
+```
+
+#### Removed from coecoclass
+
+We kept  "coecoclass_ecoclassname" and "coecoclass_ecoclasstypename"
+
+```{r}
+combo.filtered <- combo.filtered %>% select(-c(
+"coecoclass_OBJECTID" 
+,"coecoclass_ecoclassref"
+,"coecoclass_ecoclassid"
+,"coecoclass_cokey"           
+,"coecoclass_coecoclasskey"
+))
+```
+
+#### Removed from valu1
+
+```{r}
+combo.filtered <- combo.filtered %>% select(-c(
+"Valu1_OBJECTID" 
+,"Valu1_mukey"
+))
+```
+
+### Filter near zero standard deviations
+
+Remove variables that have near zero standard deviations (entire column is same value)
 
 ```{r include=FALSE}
 #nearZeroVar(combo.filtered)
@@ -237,13 +265,13 @@ combo.filtered.nearzerovar <- combo.filtered[,-nearZeroVar(combo.filtered)]
 combo.filtered.nearzerovar <-as.data.frame(unclass(combo.filtered.nearzerovar),stringsAsFactors=TRUE) #change all chars to factors
 ```
 
+## (Not included) Remove variables with missing data
 
-
-## Remove variables with missing data
-
-First, remove columns without any data (entire column is NAs)
+We could also remove columns without any data (entire column is NAs)
 
 ```{r}
+#Note the below code applies to combo.filtered rather than combo.filtered.nearzerovar
+
 combo.filtered <- combo.filtered[,colSums(is.na(combo.filtered)) < nrow(combo.filtered) * 0.8] # Keeps columns that have data for at least 80% of the observations
 #combo.filtered <- combo.filtered[colSums(!is.na(combo.filtered)) > 0] - removes columns that are completely NAs
 # df[, colSums(is.na(df)) < nrow(df) * 0.5] is command for only keeping data with at least half
@@ -253,7 +281,7 @@ combo.filtered <- combo.filtered[,colSums(is.na(combo.filtered)) < nrow(combo.fi
 
 Then check number of NAs per remaining column
 
-```{r}
+```{r echo=TRUE, include=FALSE}
 colSums(is.na(combo.filtered))
 ```
 
@@ -343,9 +371,10 @@ for (n in names(binary))
   + "component_taxclname"
   + "component_taxsubgrp"
   + "component_taxgrtgroup"
+  + "coecoclass_ecoclassname"
 
 ```{r}
-less.fifty.three <- binary %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp","component_taxgrtgroup")) 
+less.fifty.three <- binary %>% select(-c("muaggatt_musym","muaggatt_muname","component_compname","component_geomdesc","component_taxclname","component_taxsubgrp","component_taxgrtgroup","coecoclass_ecoclassname")) 
 ```
 
 Imputed data table
@@ -408,58 +437,55 @@ ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) +
 varImpPlot(rf)
 ```
 
-## Data visualization
+#### Limited number of splits 
 
-```{r}
-summary(binary$component_taxsuborder)
+```{r full rf model}
+set.seed(71)
+rf <- randomForest(field.tree.canopy.symptoms ~ ., data=data.imputed, ntree=2001, importance=TRUE, na.action=na.omit, proximity=TRUE)
 ```
 
 ```{r}
-ggplot(binary,aes(component_taxsuborder,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition", values=c("#7fcdbb","#fe9929")) +theme_bw()
+rf
 ```
 
 ```{r}
-ggplot(binary,aes(component_taxorder,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+plot(rf)
 ```
 
-```{r}
-ggplot(binary,aes(component_taxtempcl ,fill=field.tree.canopy.symptoms)) +geom_bar(position=position_dodge()) +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
+```{r fig.height=6,fig.width=9}
+#Below code copied from: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R as described here: https://www.youtube.com/watch?v=6EXPYzbfLCE
+
+## Start by converting the proximity matrix into a distance matrix. 
+
+distance.matrix <- as.dist(1-rf$proximity)
+
+mds.stuff <- cmdscale(distance.matrix, eig=TRUE, x.ret=TRUE)
+
+## calculate the percentage of variation that each MDS axis accounts for...
+mds.var.per <- round(mds.stuff$eig/sum(mds.stuff$eig)*100, 1)
+
+## now make a fancy looking plot that shows the MDS axes and the variation:
+mds.values <- mds.stuff$points
+mds.data <- data.frame(Sample=rownames(mds.values),
+  X=mds.values[,1],
+  Y=mds.values[,2],
+  Status=data.imputed$field.tree.canopy.symptoms)
+
+ggplot(data=mds.data, aes(x=X, y=Y, label=Sample)) + 
+  geom_text(aes(color=Status)) +  
+  stat_ellipse(geom="polygon",aes(fill=Status,color=Status),alpha=0.45) +
+  theme_bw() + 
+  scale_color_manual(values=c("#7fcdbb","#fe9929")) +
+  scale_fill_manual(values=c("#7fcdbb","#fe9929")) +
+  xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
+  ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
+  ggtitle("MDS plot using (1 - Random Forest Proximities)")
+
+#By default, the stat_ellipse function draws a 95% confidence level for a multivariate t-distribution. You can modify this level with level argument.
+
+#more info for ellipse https://r-charts.com/correlation/scatter-plot-ellipses-ggplot2/
 ```
 
-```{r}
-ggplot(binary,aes(muaggatt_wtdepaprjunmin,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
-```
-
-```{r}
-ggplot(binary,aes(component_irrcapcl,fill=field.tree.canopy.symptoms)) +geom_density(alpha=0.5) + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
-```
-
-```{r}
-summary(binary$component_taxpartsize)
-```
-
-```{r}
-ggplot(binary,aes(component_taxpartsize,fill=field.tree.canopy.symptoms)) +geom_bar() +coord_flip() + scale_fill_manual(name="Tree Condition",values=c("#7fcdbb","#fe9929")) +theme_bw()
-```
-
-```{r}
-summary(binary$component_slopelenusle_r)
-```
-```{r}
-summary(binary$component_irrcapcl)
-```
-
-```{r}
-summary(binary$component_map_r)
-```
-
-```{r}
-summary(binary$muaggatt_iccdcd)
-```
-
-
-
-```{r}
-importance <- varImp(rf,scale=TRUE)
-plot(importance)
+```{r fig.height=9,fig.width=12}
+varImpPlot(rf)
 ```
