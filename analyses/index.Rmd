@@ -1,5 +1,5 @@
 ---
-title: "Western Redcedar Dieback Map - Data Analyses"
+title: "Data Analyses Instructions"
 author: "Prepared by Joey Hulbert, Washington State University"
 date: July, 2022 (in progress)
 output: html_document
@@ -11,34 +11,8 @@ output: html_document
   + [Data Analyses](./analyses/)
   + [Data Visualization](./data-visualization/)
 
-# Welcome
-
-Welcome to the github page for the [repository](https://github.com/jmhulbert/redcedar) of Western Redcedar Dieback Map analyses. Below you will find instructions for contributing to, or reproducing, the analyses of the [Western Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) data.
 
 
-
-## Western Redcedar Dieback Map
-
-![Western Redcedar Dieback Map project screenshot captured 5.30.22](./figures/ WRDM Screenshot 5.30.22.png)
-
-The below analyses were *only* possible because more than 200 incredible community scientists shared observations of western redcedar on iNaturalist.
-
-
-### Get Involved
-
-More information about the methods to help address the pressing environmental issues affecting western redcedar is available at the [Forest Health Watch](https://foresthealth.org/) website.
-
-# Purpose
-
-The purpose of this webpage/repository is to ensure the reproducibility of the analyses conducted with data collected in the [Western Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project. 
-
-# Approach
-
-The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
-
-Anyone is welcome to collaborate in the analyses of these data. Please contact JM Hulbert at hulbe@wsu.edu if you're interested in contributing.
-
-# Approach Reproduction Instructions
 
 ## Data Wrangling
 

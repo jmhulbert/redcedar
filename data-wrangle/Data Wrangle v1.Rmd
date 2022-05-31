@@ -1,7 +1,7 @@
 ---
-title: "Data Wrangle v1"
-author: "Joey Hulbert"
-date: "12/15/2021"
+title: "Data Wrangling Instructions"
+author: "Prepared by Joey Hulbert, Washington State University"
+date: July, 2022 (in progress)
 output: html_document
 ---
 
@@ -10,11 +10,8 @@ knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
 ```
 
-# Purpose
 
-The purpose of this document is to track and provide instructions for reproducing the analyses of the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project data.
-
-# Approach
+# Data Wrangle Approach
 
 The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
 
@@ -25,34 +22,19 @@ The overall approach is to model empirical data collected by community scientist
       + [Topography Data](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html)
       + [Soils Data](./data-wrangle/soils/Soil-Data-Extraction.html)
 
-
-```{r include=FALSE}
-#install.packages("tidyverse")
-library(tidyverse)
-```
-
 # Datasets
 
-## Empirical Tree Point Data
+## iNat Data - Empirical Tree Points
 
-Data were downloaded from the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project. 
-
-```{r}
-data <- read.csv("./data/observations-9.19.21.csv")
-```
+Data were downloaded from the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project after 1500 observations were shared. 
 
 These data were then subset to include only gps information to use in collecting ancillary data.
 
-```{r}
-gps <- data[c(1,22,23)]
-gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mutate(el = ".") #columns were ranamed to match format for ClimateNA tool.
-```
-
 ## Ancillary Climate Data
 
-Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions for how this tool was used are included in the [climate subfolder](/climate).
+Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions are available in the [Climate Data Wrangle](./data-wrangle/climate/Climate-Data-Extraction.html) file.
 
-There were many time series groupings (different intervals where data were averaged) of the downscaled climate variables available. 
+There were many time series (different intervals where data were averaged) of the downscaled climate variables available. 
 
 * Grouping explored
   + data averaged over 30 year normals (1991-2020)
@@ -66,10 +48,10 @@ There were many time series groupings (different intervals where data were avera
 
 ## Ancillary Topography Data
 
-Ancillary Topographic data were calculated in QGIS originally, but then we switched to ArcGIS to follow methods methods for extracting topo data from GPS points as descripbed in the [topo subfolder](/topo). 
+Ancillary Topographic data were calculated and extracted for iNat GPS points in ArcGIS. The methods are described in the [Topography Data Wrangle](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html) file.
 
 
 ## Ancillary Soils Data
 
-gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [soils subfolder](/soils).
+gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [Soils Data Wrangle](./data-wrangle/soils/Soil-Data-Extraction.html) file.
 

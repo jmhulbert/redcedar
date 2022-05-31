@@ -228,6 +228,27 @@ The below bullets are questions or comments that should be resolved before final
     + Data is filtered to show most common symptoms only. 
     
 
+## Data Wrangle Notes
+
+# Purpose
+
+The purpose of this document is to track and provide instructions for reproducing the analyses of the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project data.
+
+# Approach
+
+The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
+
+# Open questions
+
+The below bullets are questions or comments that should be resolved before final analyses
+
+* Considerations
+  + Should we filter data to remove GPS points with poor accuracy?
+  + Data averaged over last decade or last 30 years?
+  + Better approach to calculate topographic data?
+  + Should we restrict data to Washington and Oregon because that is where soils data is available. 
+
+
 
 Results 
 | Model | Data | data treat |# vars | # tried at split* | OOB    | top 5 ACC | top 5 Gini| 
