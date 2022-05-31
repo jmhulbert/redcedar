@@ -1,13 +1,13 @@
 ---
-title: "Landing Page"
+title: "Western Redcedar Dieback Map data analyses"
 author: "Joey Hulbert"
 date: "5/18/2022"
 output: html_document
 ---
 
-## Welcome
+# Welcome
 
-Western Redcedar Dieback Map data analyses
+## Western Redcedar Dieback Map data analyses
 
 The purpose of this repository is to ensure the reproducibility of the analyses conducted with data collected in the [Western Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project. Anyone is welcome to collaborate in the analyses of these data.
 
@@ -17,28 +17,40 @@ Please check back again soon for more information about this repo. In the mean t
 
 More information about methods to help address the pressing environmental issues affecting our forests is available at the [Forest Health Watch](https://foresthealth.org/) website.
 
-## Analyses
+# Reproduction Instructions
 
-* Analyses
-  + Data Wrangle Instructions
+## Data Wrangling
+
+* Methods
+  + [Overview](./data-wrangle/Data-Wrangle-v1.html)
     + iNat Data
     + Environmental Data
-      + Climate Data
-      + Topography Data
-      + Soils Data
+      + [Climate Data](./data-wrangle/climate/Climate-Data-Extraction.html)
+      + [Topography Data](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html)
+      + [Soils Data](./data-wrangle/soils/Soil-Data-Extraction.html)
     + Combined Data  
-  + Data Analyses
-    + iNat Data
-    + Environmental Data
-      + Climate Data
-      + Topography Data
-      + Soils Data
-    + Combined Analyses
-  + Data Visualization
-      + iNat Data
-    + Environmental Data
-      + Climate Data
-      + Topography Data
-      + Soils Data
+
+## Analyses 
+
+* Methods
+  + [iNat Data](./analyses/inat/iNat-Data-Analysis.html)
+  + Environmental Data
+    + Climate Data
+      + [Reclassified Symptom Response](./analyses/climate/Climate-Data-Analysis---filtered-symptom-response.html)
+      + [Binary Symptom Response](./analyses/climate/Climate-Data-Analysis---binary-symptom-response.html)
+      + [Unhealthy Tree Number Response](./analyses/climate/Climate-Data-Analysis---unhealthy-tree-number-response.html)
+    + [Topography Data](./analyses/topo/Topo-Data-Analysis.html)
+    + [Soils Data](./analyses/soils/Soils-Data-Analysis.html)
+  + [**Combined Analyses**](./analyses/Full-Environmental-Predictor-Analyses.html)
+  
+  
+## Data Visualization
+
+* Methods
+  + [iNat Data](./data-visualization/inat/iNat-Data-Visualization.html)
+  + Environmental Data
+    + [Climate Data](./data-visualization/climate/Climate-Data-Visualization.html)
+    + [Topography Data](./data-visualization/topo/Topo-Data-Visualization.html)
+    + [Soils Data](./data-visualization/soils/Soils-Data-Visualization.html)
 
 

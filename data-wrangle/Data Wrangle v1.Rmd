@@ -18,15 +18,13 @@ The purpose of this document is to track and provide instructions for reproducin
 
 The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
 
-# Open questions
+  * [Data Wrangle Instructions](./data-wrangle/Data-Wrangle-v1.html)
+    + iNat Data
+    + Environmental Data
+      + [Climate Data](./data-wrangle/climate/Climate-Data-Extraction.html)
+      + [Topography Data](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html)
+      + [Soils Data](./data-wrangle/soils/Soil-Data-Extraction.html)
 
-The below bullets are questions or comments that should be resolved before final analyses
-
-* Considerations
-  + Should we filter data to remove GPS points with poor accuracy?
-  + Data averaged over last decade or last 30 years?
-  + Better approach to calculate topographic data?
-  + Should we restrict data to Washington and Oregon because that is where soils data is available. 
 
 ```{r include=FALSE}
 #install.packages("tidyverse")
@@ -54,152 +52,24 @@ gps <- rename(gps,lat = latitude) %>% `colnames<-`(c("ID2","lat","long")) %>% mu
 
 Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions for how this tool was used are included in the [climate subfolder](/climate).
 
-The latest version also supports command line access using system2(exe,"") commands, but you likely need to be running r in windows.
-
 There were many time series groupings (different intervals where data were averaged) of the downscaled climate variables available. 
 
 * Grouping explored
   + data averaged over 30 year normals (1991-2020)
-    + need to check this is actually the time period - I am not sure PRISM had released the latest normals until late 2021.
+    + Monthly
+    + Seasonal
+    + Annual
   + data averaged over last decade (2011-2020)
-
-```{r}
-normals <- read.csv("./data/gps_Normal_1991_2020MSY.csv")
-normals <- rename(normals, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
-
-```{r}
-lastdecade <- read.csv("./data/gps_Decade_2011_2020MSY.csv")
-lastdecade <- rename(lastdecade, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
+    + Monthly
+    + Seasonal
+    + Annual
 
 ## Ancillary Topography Data
 
-Ancillary Topographic data were calculated in QGIS. However, there may be an easier approach using different datasets or built in functions within Arc GIS. Preliminary methods for extracting topo data from GPS points are available in the [topo subfolder](/topo). 
+Ancillary Topographic data were calculated in QGIS originally, but then we switched to ArcGIS to follow methods methods for extracting topo data from GPS points as descripbed in the [topo subfolder](/topo). 
 
-```{r}
-topo <- read.csv("./data/gps plus DEM and TOPO data.csv")
-topo <- rename(topo, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-```
 
 ## Ancillary Soils Data
+
 gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [soils subfolder](/soils).
-
-```{r}
-wasoils <- read.csv("./data/Washington_GPS_Soils_Data_muaggatt_component.csv")
-orsoils <- read.csv("./data/Oregon_GPS_Soils_Data_muagget_component.csv") #note misspelling of muaggatt
-wasoils <- rename(wasoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-orsoils <- rename(orsoils, id = ID2) #rename column 'ID2' (changed for ClimateNA tool) back to 'id'
-pnwsoils <- bind_rows(wasoils,orsoils)
-```
-
-# Data Wrangle 
-
-The following steps to wrangle the data were completed for the **decade climate data only**. 
-
-### Merge Data
-
-Here we attempt to merge the iNat, Climate, Topo and Soils data into a single dataset. 
-
-```{r}
-#combinednormals <- left_join(data,normals,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
-combo.decade <- left_join(data,lastdecade,by="id")  %>% left_join(.,topo,by="id") %>% left_join(.,pnwsoils,by="id")
-#write.csv(combo.decade,file="./data/decade data combined.csv")
-```
-
-The number of columns (factors) in the combined data set equal **`r length(combo.decade)`**. 
-
-Damn I may have extracted and merged the soils data with a csv that contains the topo data already. Therefore, there are two columns for the topo factors (e.g. Aspect.x and Aspect.y). However, they should be the same values. 
-
-
-### Clean Data
-
-Result terms were corrected to add consistency to factors. For example, some iNat project questions changed early on and the results read differently now. 
-
-  * The following fields were corrected:
-    + Symptoms (e.g. *'thinning foliage'* changed to *'Thinning Canopy'*)
-    + Number of Unhealthy trees (e.g. *'4'* was re-categorized as *'4-6'*)
-    + Tree size (e.g. *'Small'* was changed to *'Small (can wrap hands around trunk)'*)
-    
-
-```{r}
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="Multiple Symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="multiple symptoms"] <-"Multiple Symptoms (please list in Notes)"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="thinning foliage"] <-"Thinning Canopy"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="healthy"] <-"Healthy"
-combo.decade$field.tree.canopy.symptoms[combo.decade$field.tree.canopy.symptoms=="dead top"] <-"Old Dead Top (needles already gone)"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.tree.canopy.symptoms <- as.factor(combo.decade$field.tree.canopy.symptoms)
-#levels(combo.decade$field.tree.canopy.symptoms)
-```
-
-
-```{r}
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="4"] <- "4-6"
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="5"] <- "4-6"
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.[combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.=="2"] <- "2-3"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight. <- as.factor(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-#levels(combo.decade$field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight.)
-```
-
-
-```{r}
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Large"] <- "Large (too big to wrap arms around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Medium"] <- "Medium (can wrap arms around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Small"] <- "Small (can wrap hands around trunk)"
-combo.decade$field.optional...tree.size[combo.decade$field.optional...tree.size == "Very Large"] <- "Very Large (would take many people to wrap arms around trunk)"
-combo.decade <- combo.decade %>% droplevels()
-combo.decade$field.optional...tree.size <- as.factor(combo.decade$field.optional...tree.size)
-#levels(combo.decade$field.optional...tree.size)
-```
-
-### Filter Data
-
-
-#### Data with Soils
-
-Observations are filtered to **only include those with Soils Data**. Data only includes observations from Oregon and Washington. 
-
-```{r}
-combo.decade <- combo.decade %>% filter(MAP >0 & RASTERVALU>=0, na.rm=TRUE)
-```
-
-The number of observations with soils data equals **`r count(combo.decade)`**.
-
-
-#### Symptoms 
-
-```{r}
-combo.decade %>% group_by(field.tree.canopy.symptoms) %>% count()
-```
-
-Data were also filtered to only include 5 of the tree canopy symptoms, the 'multiple symptoms' category was ignored for now. **Note the filtered.symptoms dataset has ~75 less observations than the the combo.decade dataset.**
-
-```{r}
-filtered.symptoms <- combo.decade  %>% filter(field.tree.canopy.symptoms=="Healthy"|field.tree.canopy.symptoms=="Thinning Canopy"|field.tree.canopy.symptoms=="New Dead Top (red or brown needles still attached)"|field.tree.canopy.symptoms=="Old Dead Top (needles already gone)"|field.tree.canopy.symptoms=="Tree is dead") %>% droplevels()
-#levels(filtered.symptoms$field.tree.canopy.symptoms)
-```
-
-```{r}
-filtered.symptoms %>% group_by(field.tree.canopy.symptoms) %>% count()
-```
-
-### Subset data
-
-#### Binary Symptoms 
-
-A binary symptom class was created to simply represent the observations as 'healthy' or 'unhealthy'. 
-
-```{r}
-level_key <- c("Healthy" = "Healthy", "Thinning Canopy" = "Unhealthy", "New Dead Top (red or brown needles still attached)" = "Unhealthy", "Old Dead Top (needles already gone)" = "Unhealthy", "Tree is dead" = "Unhealthy", "Multiple Symptoms (please list in Notes)" = "Unhealthy", "Extra Cone Crop" = "Unhealthy", "Browning Canopy" = "Unhealthy","Branch Dieback or 'Flagging'" = "Unhealthy", "Other (please describe in Notes)" = "Unhealthy", "Yellowing Canopy" = "Unhealthy")
-
-binary <- combo.decade
-binary$field.tree.canopy.symptoms <- recode_factor(binary$field.tree.canopy.symptoms, !!!level_key)
-#levels(binary$field.tree.canopy.symptoms)
-```
-
-```{r}
-binary %>% group_by(field.tree.canopy.symptoms) %>% count()
-```
 
