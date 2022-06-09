@@ -5,6 +5,11 @@ date: "5/29/2022"
 output: html_document
 ---
 
+|            |            |            |            |
+|:----------:|:----------:|:----------:|:----------:|
+|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/Data-Wrangle-v1.html)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
+|             |           |            |            |
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/") 
