@@ -7,7 +7,7 @@ output: html_document
 
 |            |            |            |            |
 |:----------:|:----------:|:----------:|:----------:|
-|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
+|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](https://jmhulbert.github.io/redcedar/data-wrangle/)|[Data Analyses](https://jmhulbert.github.io/redcedar/analyses/)|[Data Visualization](https://jmhulbert.github.io/redcedar/data-visualization/)|
 |             |           |            |            |
 
 ```{r setup, include=FALSE}
@@ -150,6 +150,8 @@ combo.filtered <- combo %>% filter(HLI_VALUE!="NA",na.rm=TRUE)
   + "field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
   + "field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
   + "field.notes"
+  + field.optional...what..other.factors..were.observed.
+    + note this may be an important predictor, but the data is likely baised because users were only likely to report other factors on unhealthy trees.  
 
 ```{r}
 combo.filtered <- combo.filtered %>% select(-c(
@@ -206,6 +208,7 @@ combo.filtered <- combo.filtered %>% select(-c(
 ,"field.number.of.additional.unhealthy.trees..of.same.species..in.area..within.sight."
 ,"field.percent.of.trees..of.same.species..within.sight.that.are.unhealthy"
 ,"field.optional...did.the.tree.have.heat.damage"
+,"field.optional...what..other.factors..were.observed."
 ))
 # combo.filtered <- combo.filtered[c(45,50:59,68:332,337:341,355:394,396:503,510:774)] 
 ```
