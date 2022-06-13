@@ -1,13 +1,13 @@
 ---
 title: "Full Environmental Predictor Analyses"
-author: "Joey Hulbert"
-date: "5/29/2022"
+author: "Prepared by Joey Hulbert, Washington State University"
+date: June, 2022 (in progress)
 output: html_document
 ---
 
 |            |            |            |            |
 |:----------:|:----------:|:----------:|:----------:|
-|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/Data-Wrangle-v1.html)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
+|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
 |             |           |            |            |
 
 ```{r setup, include=FALSE}

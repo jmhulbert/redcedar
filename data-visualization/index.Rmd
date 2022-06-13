@@ -1,41 +1,15 @@
 ---
 title: "Data Visualization Instructions"
 author: "Prepared by Joey Hulbert, Washington State University"
-date: July, 2022 (in progress)
+date: June, 2022 (in progress)
 output: html_document
 ---
 
-* Links
-  + [Home](https://jmhulbert.github.io/redcedar)
-  + [Data Wrangling](./data-wrangle/Data-Wrangle-v1.html)
-  + [Data Analyses](./analyses/)
-  + [Data Visualization](./data-visualization/)
+|            |            |            |            |
+|:----------:|:----------:|:----------:|:----------:|
+|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
+|             |           |            |            |
 
-
-## Data Wrangling
-
-* Methods
-  + [Overview](./data-wrangle/Data-Wrangle-v1.html)
-    + iNat Data
-    + Environmental Data
-      + [Climate Data](./data-wrangle/climate/Climate-Data-Extraction.html)
-      + [Topography Data](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html)
-      + [Soils Data](./data-wrangle/soils/Soil-Data-Extraction.html)
-    + Combined Data  
-
-## Analyses 
-
-* Methods
-  + [Overview](./analyses/)
-    + [iNat Data](./analyses/inat/iNat-Data-Analysis.html)
-    + Environmental Data
-      + Climate Data
-        + [Reclassified Symptom Response](./analyses/climate/Climate-Data-Analysis---filtered-symptom-response.html)
-        + [Binary Symptom Response](./analyses/climate/Climate-Data-Analysis---binary-symptom-response.html)
-        + [Unhealthy Tree Number Response](./analyses/climate/Climate-Data-Analysis---unhealthy-tree-number-response.html)
-      + [Topography Data](./analyses/topo/Topo-Data-Analysis.html)
-      + [Soils Data](./analyses/soils/Soils-Data-Analysis.html)
-    + [**Combined Analyses**](./analyses/Full-Environmental-Predictor-Analyses.html)
 
 ## Data Visualization
 

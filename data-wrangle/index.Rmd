@@ -7,7 +7,7 @@ output: html_document
 
 |            |            |            |            |
 |:----------:|:----------:|:----------:|:----------:|
-|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/Data-Wrangle-v1.html)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
+|[Home](https://jmhulbert.github.io/redcedar)|[Data Wrangling](./data-wrangle/)|[Data Analyses](./analyses/)|[Data Visualization](./data-visualization/)|
 |             |           |            |            |
 
 
@@ -30,18 +30,19 @@ The overall approach is to model empirical data collected by community scientist
 
 # Datasets
 
-## iNat Data - Empirical Tree Points
+### iNat Data - Empirical Tree Points
 
 Data were downloaded from the [Wester Redcedar Dieback Map](https://www.inaturalist.org/projects/western-redcedar-dieback-map) project after 1500 observations were shared. 
 
 These data were then subset to include only gps information to use in collecting ancillary data.
 
-## Ancillary Climate Data
+### Ancillary Data
+
+#### Climate Data
 
 Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions are available in the [Climate Data Wrangle](./data-wrangle/climate/Climate-Data-Extraction.html) file.
 
 There were many time series (different intervals where data were averaged) of the downscaled climate variables available. 
-
 * Grouping explored
   + data averaged over 30 year normals (1991-2020)
     + Monthly
@@ -52,12 +53,12 @@ There were many time series (different intervals where data were averaged) of th
     + Seasonal
     + Annual
 
-## Ancillary Topography Data
+#### Topography Data
 
 Ancillary Topographic data were calculated and extracted for iNat GPS points in ArcGIS. The methods are described in the [Topography Data Wrangle](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html) file.
 
 
-## Ancillary Soils Data
+#### Soils Data
 
 gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [Soils Data Wrangle](./data-wrangle/soils/Soil-Data-Extraction.html) file.
 
