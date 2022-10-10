@@ -15,14 +15,14 @@ output: html_document
 ## Analyses 
 
 * Methods
-  + [Overview](./analyses/)
-    + [iNat Data](./analyses/inat/iNat-Data-Analysis.html)
+  + [Overview](./)
+    + [iNat Data](./inat/iNat-Data-Analysis.html)
     + Environmental Data
       + Climate Data
-        + [Reclassified Symptom Response](./analyses/climate/Climate-Data-Analysis---filtered-symptom-response.html)
-        + [Binary Symptom Response](./analyses/climate/Climate-Data-Analysis---binary-symptom-response.html)
-        + [Unhealthy Tree Number Response](./analyses/climate/Climate-Data-Analysis---unhealthy-tree-number-response.html)
-      + [Topography Data](./analyses/topo/Topo-Data-Analysis.html)
-      + [Soils Data](./analyses/soils/Soils-Data-Analysis.html)
-    + [**Combined Analyses**](./analyses/Full-Environmental-Predictor-Analyses.html)
+        + [Reclassified Symptom Response](./climate/Climate-Data-Analysis---filtered-symptom-response.html)
+        + [Binary Symptom Response](./climate/Climate-Data-Analysis---binary-symptom-response.html)
+        + [Unhealthy Tree Number Response](./climate/Climate-Data-Analysis---unhealthy-tree-number-response.html)
+      + [Topography Data](./topo/Topo-Data-Analysis.html)
+      + [Soils Data](./soils/Soils-Data-Analysis.html)
+    + [**Combined Analyses**](./Full-Environmental-Predictor-Analyses.html)
 

@@ -14,7 +14,7 @@ output: html_document
 ## Data Visualization
 
 * Methods
-  + [Overview](./data-visualization/)
+  + [Overview](./)
     + [iNat Data](./inat/iNat-Data-Visualization.html)
     + Environmental Data
       + [Climate Data](./climate/Climate-Data-Visualization.html)

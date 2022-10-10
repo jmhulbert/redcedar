@@ -21,12 +21,12 @@ knitr::opts_knit$set(root.dir = "/Users/redcedar/ServerFiles/redcedar/")
 
 The overall approach is to model empirical data collected by community scientists with ancillary environmental data (climate, topographic, and soils) to identify important predictors of western redcedar dieback.
 
-  * [Data Wrangle Instructions](./data-wrangle/Data-Wrangle-v1.html)
+  * [Data Wrangle Instructions](./Data-Wrangle-v1.html)
     + iNat Data
     + Environmental Data
-      + [Climate Data](./data-wrangle/climate/Climate-Data-Extraction.html)
-      + [Topography Data](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html)
-      + [Soils Data](./data-wrangle/soils/Soil-Data-Extraction.html)
+      + [Climate Data](./climate/Climate-Data-Extraction.html)
+      + [Topography Data](./topo/Topo-Data-Extraction---ArcGIS.html)
+      + [Soils Data](./soils/Soil-Data-Extraction.html)
 
 # Datasets
 
@@ -40,7 +40,7 @@ These data were then subset to include only gps information to use in collecting
 
 #### Climate Data
 
-Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions are available in the [Climate Data Wrangle](./data-wrangle/climate/Climate-Data-Extraction.html) file.
+Data were downloaded for the iNat GPS locations using the ClimateNA Tool. Instructions are available in the [Climate Data Wrangle](./climate/Climate-Data-Extraction.html) file.
 
 There were many time series (different intervals where data were averaged) of the downscaled climate variables available. 
 * Grouping explored
@@ -55,10 +55,10 @@ There were many time series (different intervals where data were averaged) of th
 
 #### Topography Data
 
-Ancillary Topographic data were calculated and extracted for iNat GPS points in ArcGIS. The methods are described in the [Topography Data Wrangle](./data-wrangle/topo/Topo-Data-Extraction---ArcGIS.html) file.
+Ancillary Topographic data were calculated and extracted for iNat GPS points in ArcGIS. The methods are described in the [Topography Data Wrangle](./topo/Topo-Data-Extraction---ArcGIS.html) file.
 
 
 #### Soils Data
 
-gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [Soils Data Wrangle](./data-wrangle/soils/Soil-Data-Extraction.html) file.
+gSURRGO data were downloaded for states containing iNAT observations. Instructions for extracting the soils data using Arc GIS Pro are included  in the [Soils Data Wrangle](./soils/Soil-Data-Extraction.html) file.
 
