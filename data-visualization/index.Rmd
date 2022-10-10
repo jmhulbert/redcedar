@@ -15,8 +15,8 @@ output: html_document
 
 * Methods
   + [Overview](./data-visualization/)
-    + [iNat Data](./data-visualization/inat/iNat-Data-Visualization.html)
+    + [iNat Data](./inat/iNat-Data-Visualization.html)
     + Environmental Data
-      + [Climate Data](./data-visualization/climate/Climate-Data-Visualization.html)
-      + [Topography Data](./data-visualization/topo/Topo-Data-Visualization.html)
-      + [Soils Data](./data-visualization/soils/Soils-Data-Visualization.html)
+      + [Climate Data](./climate/Climate-Data-Visualization.html)
+      + [Topography Data](./topo/Topo-Data-Visualization.html)
+      + [Soils Data](./soils/Soils-Data-Visualization.html)
